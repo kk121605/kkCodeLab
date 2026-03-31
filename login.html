@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CompeteHub - 登录 / 注册</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+        }
+        /* 页面背景设置 */
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 30%, #6ba1d1 70%, #ffffff 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.3);
+            z-index: -1;
+        }
+        /* 背景装饰元素 */
+        .bg-decoration {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 20s infinite linear;
+            z-index: 0;
+        }
+        @keyframes float {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+        /* 登录/注册/找回密码卡片样式（复用原有卡片样式） */
+        .auth-card {
+            width: 100%;
+            max-width: 420px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            padding: 36px;
+            position: relative;
+            z-index: 1;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-top: 5px solid #1e3c72;
+        }
+        /* 卡片悬停效果 - 上浮 */
+        .auth-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        }
+        /* 卡片顶部装饰图 */
+        .auth-card .decor-img {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 24px;
+            display: block;
+            border-radius: 50%;
+            border: 2px solid #e8f0fe;
+            transition: transform 0.3s ease;
+        }
+        .auth-card:hover .decor-img {
+            transform: scale(1.1);
+        }
+        /* 表单标题样式 */
+        .auth-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 600;
+            color: #2c83ff;
+            margin-bottom: 28px;
+        }
+        /* 表单容器样式 */
+        .auth-form {
+            width: 100%;
+        }
+        /* 表单输入组 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        /* 表单标签样式 */
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 6px;
+        }
+        /* 表单输入框样式 */
+        .form-control {
+            width: 100%;
+            height: 44px;
+            padding: 0 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+        /* 输入框聚焦效果 */
+        .form-control:focus {
+            outline: none;
+            border-color: #2c83ff;
+            box-shadow: 0 0 0 3px rgba(44, 131, 255, 0.1);
+        }
+        /* 错误提示样式 */
+        .error-message {
+            color: #ff4d4f;
+            font-size: 12px;
+            margin-top: 4px;
+            min-height: 16px;
+            display: none;
+        }
+        /* 表单提交按钮样式 */
+        .auth-btn {
+            width: 100%;
+            height: 46px;
+            background-color: #2c83ff;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+        }
+        /* 按钮 hover 效果 */
+        .auth-btn:hover {
+            background-color: #1a73e8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(44, 131, 255, 0.3);
+        }
+        /* 表单切换链接样式（登录↔注册↔忘记密码） */
+        .switch-link {
+            display: block;
+            text-align: center;
+            font-size: 14px;
+            color: #2c83ff;
+            margin-top: 16px;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .switch-link:hover {
+            text-decoration: underline;
+            color: #1a73e8;
+        }
+        /* 初始隐藏注册表单和找回密码表单，默认显示登录表单 */
+        #registerForm, #forgotPwdForm {
+            display: none;
+        }
+        /* 密码要求提示（注册页） */
+        .password-hint {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+            line-height: 1.5;
+        }
+        /* 5个设计员超链接样式 */
+        .designers-link-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .designers-link {
+            display: inline-block;
+            font-size: 12px;
+            color: #666;
+            text-decoration: none;
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        .designers-link:hover {
+            border-color: #2c83ff;
+            color: #2c83ff;
+            background-color: rgba(44, 131, 255, 0.05);
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(44, 131, 255, 0.15);
+        }
+        /* 页脚版权信息 */
+        .footer {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+        }
+        /* 安全提示样式 */
+        .security-notice {
+            background-color: rgba(44, 131, 255, 0.1);
+            border-left: 4px solid #2c83ff;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #555;
+        }
+        /* 加载动画 */
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        /* 验证码输入组：输入框+发送按钮横向排列 */
+        .verify-code-group {
+            display: flex;
+            gap: 10px;
+        }
+        .verify-code-group .form-control {
+            flex: 1; /* 输入框占满剩余宽度 */
+        }
+        /* 发送验证码按钮（小尺寸，适配横向布局） */
+        .send-code-btn {
+            width: 120px;
+            height: 44px;
+            font-size: 13px;
+            padding: 0;
+        }
+        /* 身份验证方式切换（手机号/邮箱） */
+        .auth-type-switch {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .auth-type-btn {
+            flex: 1;
+            height: 40px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background-color: #fff;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .auth-type-btn.active {
+            border-color: #2c83ff;
+            color: #2c83ff;
+            background-color: rgba(44, 131, 255, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <!-- 登录注册卡片容器 -->
+    <div class="auth-card">
+        <img src="https://img.icons8.com/fluency/96/000000/trophy.png" alt="CompeteHub竞赛图标" class="decor-img">
+
+        <!-- 1. 登录表单 -->
+        <div id="loginForm">
+            <h2 class="auth-title">CompeteHub 登录</h2>
+        
+            <form class="auth-form" id="loginFormElement">
+                <div class="form-group">
+                    <label for="loginUsername">用户名</label>
+                    <input type="text" id="loginUsername" class="form-control" placeholder="请输入用户名" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">密码</label>
+                    <input type="password" id="loginPassword" class="form-control" placeholder="请输入密码" required>
+                    <!-- 忘记密码链接 -->
+                    <a href="javascript:;" class="switch-link" style="margin-top: 6px; text-align: right;" onclick="switchForm('forgotPwd')">忘记密码？</a>
+                    <div class="error-message" id="loginError"></div>
+                </div>
+                <div class="loading" id="loginLoading">
+                    <div class="loading-spinner"></div>
+                    <span>Verifying...</span>
+                </div>
+                <button type="submit" class="auth-btn">登录</button>
+                <a href="javascript:;" class="switch-link" onclick="switchForm('register')">还没有账号？注册</a>
+                
+            </form>
+        </div>
+
+        <!-- 2. 注册表单 -->
+        <div id="registerForm">
+            <h2 class="auth-title">CompeteHub 注册</h2>
+            <form class="auth-form" id="registerFormElement">
+                <div class="form-group">
+                    <label for="regUsername">用户名</label>
+                    <input type="text" id="regUsername" class="form-control" placeholder="请设置用户名" required>
+                    <div class="error-message" id="usernameError"></div>
+                    <div class="password-hint">Username cannot exceed 16 characters</div>
+                </div>
+                <div class="form-group">
+                    <label for="regPassword">密码</label>
+                    <input type="password" id="regPassword" class="form-control" placeholder="请设置密码" required>
+                    <div class="error-message" id="passwordError"></div>
+                    <div class="password-hint">
+                        The password must contain：<br>
+                        - capital letter and lowercase letter<br>
+                        - number<br>
+                        - length at least 8 characters
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="regConfirmPwd">确认密码</label>
+                    <input type="password" id="regConfirmPwd" class="form-control" placeholder="请再次输入密码" required>
+                    <div class="error-message" id="confirmError"></div>
+                </div>
+                <div class="loading" id="registerLoading">
+                    <div class="loading-spinner"></div>
+                    <span>Registering...</span>
+                </div>
+                <button type="submit" class="auth-btn">注册</button>
+                <a href="javascript:;" class="switch-link" onclick="switchForm('login')">已有账号？登录</a>
+               
+            </form>
+        </div>
+
+        <!-- 3. 忘记密码表单 -->
+        <div id="forgotPwdForm">
+            <h2 class="auth-title">找回密码</h2>
+            <div class="security-notice">
+                安全提示：请通过注册时使用的手机号或邮箱接收验证码
+            </div>
+            <form class="auth-form" id="forgotPwdFormElement">
+                <!-- 身份验证方式：手机号/邮箱切换 -->
+                <div class="auth-type-switch">
+                    <button type="button" class="auth-type-btn active" data-type="phone">手机号</button>
+                    <button type="button" class="auth-type-btn" data-type="email">邮箱</button>
+                </div>
+
+                <!-- 手机号输入组（默认显示） -->
+                <div class="form-group auth-field-group" data-field="phone">
+                    <label for="forgotPhone">注册手机号</label>
+                    <input type="tel" id="forgotPhone" class="form-control" placeholder="请输入注册手机号" required>
+                    <div class="error-message" id="forgotPhoneError"></div>
+                </div>
+
+                <!-- 邮箱输入组（初始隐藏） -->
+                <div class="form-group auth-field-group" data-field="email" style="display: none;">
+                    <label for="forgotEmail">注册邮箱</label>
+                    <input type="email" id="forgotEmail" class="form-control" placeholder="请输入注册邮箱" required>
+                    <div class="error-message" id="forgotEmailError"></div>
+                </div>
+
+                <!-- 验证码输入组 -->
+                <div class="form-group verify-code-group">
+                    <input type="text" id="verifyCode" class="form-control" placeholder="请输入验证码" required>
+                    <button type="button" class="auth-btn send-code-btn" id="sendCodeBtn">发送验证码</button>
+                </div>
+                <div class="error-message" id="verifyCodeError"></div>
+
+                <!-- 新密码输入组 -->
+                <div class="form-group">
+                    <label for="newPassword">新密码</label>
+                    <input type="password" id="newPassword" class="form-control" placeholder="请设置新密码" required>
+                    <div class="error-message" id="newPasswordError"></div>
+                    <div class="password-hint">
+                        The password must contain：<br>
+                        - capital letter and lowercase letter<br>
+                        - number<br>
+                        - length at least 8 characters
+                    </div>
+                </div>
+
+                <!-- 确认新密码输入组 -->
+                <div class="form-group">
+                    <label for="confirmNewPassword">确认新密码</label>
+                    <input type="password" id="confirmNewPassword" class="form-control" placeholder="请再次输入新密码" required>
+                    <div class="error-message" id="confirmNewPasswordError"></div>
+                </div>
+
+                <!-- 加载状态 -->
+                <div class="loading" id="forgotPwdLoading">
+                    <div class="loading-spinner"></div>
+                    <span>正在重置密码...</span>
+                </div>
+
+                <!-- 提交按钮与返回链接 -->
+                <button type="submit" class="auth-btn">重置密码</button>
+                <a href="javascript:;" class="switch-link" onclick="switchForm('login')">返回登录</a>
+            </form>
+        </div>
+
+    
+       
+
+    <script>
+        // 安全配置
+        const SECURITY_CONFIG = {
+            sessionTimeout: 30 * 60 * 1000, // 会话超时时间（30分钟）
+            csrfToken: generateCSRFToken() // 生成CSRF令牌
+        };
+        // 生成CSRF令牌
+        function generateCSRFToken() {
+            return Math.random().toString(36).substring(2, 15) +
+                   Math.random().toString(36).substring(2, 15);
+        }
+        // 检测SQL注入尝试
+        function detectSQLInjection(input) {
+            if (!input) return false;
+            const sqlKeywords = [
+                'select', 'insert', 'update', 'delete', 'drop', 'union',
+                'or', 'and', 'where', 'from', 'table', 'database', 'schema',
+                'procedure', 'function', 'trigger', 'index', 'view'
+            ];
+            const lowerInput = input.toLowerCase();
+            for (const keyword of sqlKeywords) {
+                const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+                if (regex.test(lowerInput)) {
+                    return true;
+                }
+            }
+            const sqlPatterns = [
+                /(\%27)|(\')|(\-\-)|(\%23)|(#)/i,
+                /((\%3D)|(=))[^\n]*((\%27)|(\')|(\-\-)|(\%3B)|(;))/i,
+                /\w*((\%27)|(\'))((\%6F)|o|(\%4F))((\%72)|r|(\%52))/i,
+                /((\%27)|(\'))union/i,
+                /(\%27)|(\')|(\%3B)|(;)/i
+            ];
+            for (const pattern of sqlPatterns) {
+                if (pattern.test(lowerInput)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // -------------------------- 1. 完善登录表单验证：登录成功后存储登录态并跳主页面 --------------------------
+        document.getElementById('loginFormElement').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errorElement = document.getElementById('loginError');
+            
+            // SQL注入检测（原有逻辑不变）
+            if (detectSQLInjection(username) || detectSQLInjection(password)) {
+                errorElement.textContent = 'Network error, please check your network connection!';
+                errorElement.style.display = 'block';
+                return;
+            }
+            
+            showLoading('login');
+            
+            // 使用真实API进行登录验证
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                })
+            })
+            .then(response => {
+                return response.json().then(data => ({
+                    ok: response.ok,
+                    status: response.status,
+                    data: data
+                }));
+            })
+            .then(result => {
+                hideLoading('login');
+                                        if (result.ok) {
+                                        // 登录成功，存储用户信息并检查是否已填写兴趣，若未填写则跳转到兴趣页面
+                                        localStorage.setItem('competeHubUser', JSON.stringify({
+                                                username: username,
+                                                user_id: result.data.user_id,
+                                                loginTime: new Date().getTime()
+                                        }));
+                                        // 拉取用户详情，检查 interests
+                                        fetch(`/users/${result.data.user_id}`)
+                                            .then(r=>r.json())
+                                            .then(userData=>{
+                                                const hasInterests = userData && userData.interests && userData.interests.length>0;
+                                                if (!hasInterests) {
+                                                    // 首次登录/未填写兴趣，跳转到兴趣选择页
+                                                    window.location.href = '/select-interests';
+                                                } else {
+                                                    alert('Login successful!');
+                                                    window.location.href = '/index';
+                                                }
+                                            }).catch(()=>{ window.location.href = '/index'; });
+                                } else {
+                    // 显示错误信息
+                    errorElement.textContent = result.data.error || 'Login failed, please try again!';
+                    errorElement.style.display = 'block';
+                    // 3秒后自动隐藏错误信息
+                    setTimeout(() => {
+                        errorElement.style.display = 'none';
+                    }, 3000);
+                }
+            })
+            .catch(error => {
+                hideLoading('login');
+                errorElement.textContent = 'Network error, please check your network connection!';
+                errorElement.style.display = 'block';
+                setTimeout(() => {
+                    errorElement.style.display = 'none';
+                }, 3000);
+            });
+        });
+
+        // -------------------------- 2. 完善注册表单验证：注册成功后跳登录页（引导用户登录） --------------------------
+        document.getElementById('registerFormElement').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirmPwd = document.getElementById('regConfirmPwd').value;
+            
+            // 获取错误提示元素
+            const usernameError = document.getElementById('usernameError');
+            const passwordError = document.getElementById('passwordError');
+            const confirmError = document.getElementById('confirmError');
+            
+            // 重置所有错误提示
+            usernameError.style.display = 'none';
+            passwordError.style.display = 'none';
+            confirmError.style.display = 'none';
+            
+            let isValid = true;
+            
+            // SQL注入检测
+            if (detectSQLInjection(username) || detectSQLInjection(password)) {
+                usernameError.textContent = 'Network error, please check your network connection!';
+                usernameError.style.display = 'block';
+                isValid = false;
+            }
+            
+            // 验证用户名
+            if (username.length > 16) {
+                usernameError.textContent = 'Username cannot exceed 16 characters';
+                usernameError.style.display = 'block';
+                isValid = false;
+            }
+            
+            // 验证密码复杂度
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+            if (!passwordRegex.test(password)) {
+                passwordError.textContent = 'Password must contain at least 8 characters, including uppercase, lowercase, and numbers';
+                passwordError.style.display = 'block';
+                isValid = false;
+            }
+            
+            // 验证密码一致性
+            if (password !== confirmPwd) {
+                confirmError.textContent = 'Passwords do not match';
+                confirmError.style.display = 'block';
+                isValid = false;
+            }
+            
+            // 如果验证通过
+            if (isValid) {
+                // 显示加载状态
+                showLoading('register');
+                
+                // 使用真实API进行Register
+                fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password,
+                        email: username + '@example.com'  // 简化处理，实际应该有邮箱输入框
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading('register');
+                    if (data.error) {
+                        usernameError.textContent = data.error;
+                        usernameError.style.display = 'block';
+                    } else {
+                        // 注册成功：自动把用户信息写入 localStorage 并跳转到兴趣选择页（首次注册强制填写兴趣）
+                        const userId = data.user_id || null;
+                        localStorage.setItem('competeHubUser', JSON.stringify({
+                            username: username,
+                            user_id: userId,
+                            loginTime: new Date().getTime()
+                        }));
+                        // 直接跳转到兴趣选择页，强制填写
+                        window.location.href = '/select-interests';
+                    }
+                })
+                .catch(error => {
+                    hideLoading('register');
+                    usernameError.textContent = 'Network error, please check your network connection!';
+                    usernameError.style.display = 'block';
+                });
+            }
+        });
+
+        // -------------------------- 新增：忘记密码相关逻辑 --------------------------
+        // 存储当前选中的身份验证类型（phone/email）
+        let currentAuthType = 'phone';
+        // 验证码倒计时（防止重复发送）
+        let codeTimer = null;
+        let countdown = 60;
+
+        // 1. 身份验证类型切换（手机号/邮箱）
+        document.querySelectorAll('.auth-type-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // 切换按钮激活状态
+                document.querySelectorAll('.auth-type-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                // 切换输入框显示
+                currentAuthType = this.dataset.type;
+                document.querySelectorAll('.auth-field-group').forEach(field => {
+                    field.style.display = field.dataset.field === currentAuthType ? 'block' : 'none';
+                });
+                // 隐藏对应错误提示
+                document.getElementById(`forgot${currentAuthType === 'phone' ? 'Phone' : 'Email'}Error`).style.display = 'none';
+            });
+        });
+
+        // 2. 发送验证码（预留后端接口对接）
+        document.getElementById('sendCodeBtn').addEventListener('click', function() {
+            const sendBtn = this;
+            let account = '';
+            let errorElement = null;
+
+            // 获取当前输入的账号（手机号/邮箱）
+            if (currentAuthType === 'phone') {
+                account = document.getElementById('forgotPhone').value.trim();
+                errorElement = document.getElementById('forgotPhoneError');
+                // 手机号格式验证
+                const phoneRegex = /^1[3-9]\d{9}$/;
+                if (!phoneRegex.test(account)) {
+                    errorElement.textContent = 'Please enter a valid mobile phone format';
+                    errorElement.style.display = 'block';
+                    return;
+                }
+            } else {
+                account = document.getElementById('forgotEmail').value.trim();
+                errorElement = document.getElementById('forgotEmailError');
+                // 邮箱格式验证
+                const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                if (!emailRegex.test(account)) {
+                    errorElement.textContent = 'Please enter a valid email format';
+                    errorElement.style.display = 'block';
+                    return;
+                }
+            }
+
+            // SQL注入检测
+            if (detectSQLInjection(account)) {
+                errorElement.textContent = 'Detected suspicious input, operation blocked!';
+                errorElement.style.display = 'block';
+                return;
+            }
+
+            // -------------------------- 后端接口：发送验证码 --------------------------
+            // 实际项目中替换为真实接口地址（如 /api/send-verify-code）
+            const verifyCodeApi = `http://localhost:5000/api/send-verify-code`;
+            showLoading('forgotPwd'); // 显示加载状态
+
+            fetch(verifyCodeApi, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': SECURITY_CONFIG.csrfToken // 安全防护：传递CSRF令牌
+                },
+                body: JSON.stringify({
+                    authType: currentAuthType, // 验证类型：phone/email
+                    account: account // 手机号/邮箱
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading('forgotPwd'); // 隐藏加载状态
+                if (data.code === 200) {
+                    // 发送成功：启动倒计时
+                    sendBtn.disabled = true;
+                    sendBtn.textContent = `重新发送(${countdown}s)`;
+                    countdown = 60;
+                    codeTimer = setInterval(() => {
+                        countdown--;
+                        sendBtn.textContent = `重新发送(${countdown}s)`;
+                        if (countdown <= 0) {
+                            clearInterval(codeTimer);
+                            sendBtn.disabled = false;
+                            sendBtn.textContent = '发送验证码';
+                        }
+                    }, 1000);
+                    alert('Verification code sent, please check!');
+                } else {
+                    // 发送失败（如账号未注册）
+                    errorElement.textContent = data.msg || 'Failed to send verification code, please try again!';
+                    errorElement.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                hideLoading('forgotPwd');
+                errorElement.textContent = '网络异常，请稍后再试！';
+                errorElement.style.display = 'block';
+                console.error('发送验证码错误：', error);
+            });
+        });
+
+        // 3. 忘记密码表单提交（密码重置，预留后端接口）
+        document.getElementById('forgotPwdFormElement').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const verifyCode = document.getElementById('verifyCode').value.trim();
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+            let account = '';
+            let errorElements = {
+                account: document.getElementById(`forgot${currentAuthType === 'phone' ? 'Phone' : 'Email'}Error`),
+                verifyCode: document.getElementById('verifyCodeError'),
+                newPassword: document.getElementById('newPasswordError'),
+                confirmNewPassword: document.getElementById('confirmNewPasswordError')
+            };
+
+            // 重置所有错误提示
+            Object.values(errorElements).forEach(el => el.style.display = 'none');
+            let isValid = true;
+
+            // 1. 验证账号（手机号/邮箱）
+            if (currentAuthType === 'phone') {
+                account = document.getElementById('forgotPhone').value.trim();
+                const phoneRegex = /^1[3-9]\d{9}$/;
+                if (!phoneRegex.test(account)) {
+                    errorElements.account.textContent = '请输入正确的手机号格式';
+                    errorElements.account.style.display = 'block';
+                    isValid = false;
+                }
+            } else {
+                account = document.getElementById('forgotEmail').value.trim();
+                const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                if (!emailRegex.test(account)) {
+                    errorElements.account.textContent = '请输入正确的邮箱格式';
+                    errorElements.account.style.display = 'block';
+                    isValid = false;
+                }
+            }
+
+            // 2. 验证验证码
+            if (!verifyCode) {
+                errorElements.verifyCode.textContent = '请输入验证码';
+                errorElements.verifyCode.style.display = 'block';
+                isValid = false;
+            } else if (verifyCode.length < 4) { // 假设验证码为4位
+                errorElements.verifyCode.textContent = '验证码格式错误';
+                errorElements.verifyCode.style.display = 'block';
+                isValid = false;
+            }
+
+            // 3. 验证新密码（与注册密码规则一致）
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+            if (!passwordRegex.test(newPassword)) {
+                errorElements.newPassword.textContent = '密码需包含大小写字母、数字且至少8位';
+                errorElements.newPassword.style.display = 'block';
+                isValid = false;
+            }
+
+            // 4. 验证密码一致性
+            if (newPassword !== confirmNewPassword) {
+                errorElements.confirmNewPassword.textContent = '两次输入的密码不一致';
+                errorElements.confirmNewPassword.style.display = 'block';
+                isValid = false;
+            }
+
+            // 5. SQL注入检测
+            if (detectSQLInjection(account) || detectSQLInjection(newPassword)) {
+                errorElements.account.textContent = '检测到异常输入，操作已被阻止！';
+                errorElements.account.style.display = 'block';
+                isValid = false;
+            }
+
+            // 验证通过：提交重置请求
+            if (isValid) {
+                showLoading('forgotPwd');
+
+                // -------------------------- 后端接口：重置密码 --------------------------
+                // 实际项目中替换为真实接口地址（如 /api/reset-password）
+                const resetPwdApi = `http://localhost:5000/api/reset-password`;
+                fetch(resetPwdApi, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': SECURITY_CONFIG.csrfToken // 安全防护：传递CSRF令牌
+                    },
+                    body: JSON.stringify({
+                        authType: currentAuthType, // 验证类型：phone/email
+                        account: account, // Phone number/Email
+                        verifyCode: verifyCode, // Verification code
+                        newPassword: newPassword // New Password
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading('forgotPwd');
+                    if (data.code === 200) {
+                        alert('Password reset successfully! Please login with your new password');
+                        // 清除验证码倒计时
+                        if (codeTimer) clearInterval(codeTimer);
+                        // 返回登录表单
+                        switchForm('login');
+                        // 清空找回密码表单
+                        this.reset();
+                        document.getElementById('sendCodeBtn').disabled = false;
+                        document.getElementById('sendCodeBtn').textContent = '发送验证码';
+                    } else {
+                        // 重置失败（如验证码无效）
+                        errorElements.verifyCode.textContent = data.msg || 'Password reset failed, please try again!';
+                        errorElements.verifyCode.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    hideLoading('forgotPwd');
+                    errorElements.verifyCode.textContent = 'Network error, please try again later!';
+                    errorElements.verifyCode.style.display = 'block';
+                    console.error('Password reset error:', error);
+                });
+            }
+        });
+
+        // -------------------------- Original logic: Form switching, login/registration validation --------------------------
+        // Form switching function (added forgotPwd form type)
+        function switchForm(targetForm) {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const forgotPwdForm = document.getElementById('forgotPwdForm');
+            
+            // 隐藏所有错误提示
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // 隐藏所有表单
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'none';
+            forgotPwdForm.style.display = 'none';
+            
+            // 显示目标表单
+            if (targetForm === 'login') {
+                loginForm.style.display = 'block';
+            } else if (targetForm === 'register') {
+                registerForm.style.display = 'block';
+            } else if (targetForm === 'forgotPwd') { // Added: Display password recovery form
+                forgotPwdForm.style.display = 'block';
+                // Clear verification code countdown (prevent countdown from continuing after form switching)
+                if (codeTimer) {
+                    clearInterval(codeTimer);
+                    codeTimer = null;
+                    document.getElementById('sendCodeBtn').disabled = false;
+                    document.getElementById('sendCodeBtn').textContent = '发送验证码';
+                }
+            }
+        }
+
+        // Show loading status (original, added forgotPwd type)
+        function showLoading(formType) {
+            const loadingElement = document.getElementById(`${formType}Loading`);
+            if (loadingElement) {
+                loadingElement.style.display = 'block';
+            }
+        }
+
+        // Hide loading status (original, added forgotPwd type)
+        function hideLoading(formType) {
+            const loadingElement = document.getElementById(`${formType}Loading`);
+            if (loadingElement) {
+                loadingElement.style.display = 'none';
+            }
+        }
+
+        // Login form validation (original)
+        document.getElementById('loginFormElement').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errorElement = document.getElementById('loginError');
+            
+            // SQL注入检测
+            if (detectSQLInjection(username) || detectSQLInjection(password)) {
+                errorElement.textContent = '检测到SQL注入尝试，输入已被阻止！';
+                errorElement.style.display = 'block';
+                return;
+            }
+            
+            // 显示加载状态
+            showLoading('login');
+            
+            // 使用真实API进行登录验证
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                })
+            })
+            .then(response => {
+                return response.json().then(data => ({
+                    ok: response.ok,
+                    status: response.status,
+                    data: data
+                }));
+            })
+            .then(result => {
+                hideLoading('login');
+                if (result.ok) {
+                    // 登录成功，跳转到首页
+                    alert('登录成功！');
+                    // 存储用户信息到localStorage
+                    localStorage.setItem('competeHubUser', JSON.stringify({
+                        username: username,
+                        user_id: result.data.user_id,
+                        loginTime: new Date().getTime()
+                    }));
+                    window.location.href = '/index';
+                } else {
+                    // 显示错误信息
+                    errorElement.textContent = result.data.error || '登录失败，请重试！';
+                    errorElement.style.display = 'block';
+                    // 3秒后自动隐藏错误信息
+                    setTimeout(() => {
+                        errorElement.style.display = 'none';
+                    }, 3000);
+                }
+            })
+            .catch(error => {
+                hideLoading('login');
+                errorElement.textContent = '网络错误，请检查网络连接！';
+                errorElement.style.display = 'block';
+                setTimeout(() => {
+                    errorElement.style.display = 'none';
+                }, 3000);
+            });
+        });
+
+        // Registration form validation (original)
+        document.getElementById('registerFormElement').addEventListener('submit', function(e) {
+            e.preventDefault(); // 阻止表单默认提交
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirmPwd = document.getElementById('regConfirmPwd').value;
+            
+            // 获取错误提示元素
+            const usernameError = document.getElementById('usernameError');
+            const passwordError = document.getElementById('passwordError');
+            const confirmError = document.getElementById('confirmError');
+            
+            // 重置所有错误提示
+            usernameError.style.display = 'none';
+            passwordError.style.display = 'none';
+            confirmError.style.display = 'none';
+            
+            let isValid = true;
+            
+            // SQL注入检测
+            if (detectSQLInjection(username) || detectSQLInjection(password)) {
+                usernameError.textContent = '检测到SQL注入尝试，输入已被阻止！';
+                usernameError.style.display = 'block';
+                isValid = false;
+            }
+            
+            // 验证用户名
+            if (username.length > 16) {
+                usernameError.textContent = '用户名不能超过16个字符';
+                usernameError.style.display = 'block';
+                isValid = false;
+            }
+            
+            // 验证密码复杂度
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+            if (!passwordRegex.test(password)) {
+                passwordError.textContent = '密码不符合要求，请包含大小写字母、数字且至少8位';
+                passwordError.style.display = 'block';
+                isValid = false;
+            }
+            
+            // 验证密码一致性
+            if (password !== confirmPwd) {
+                confirmError.textContent = '两次输入的密码不一致';
+                confirmError.style.display = 'block';
+                isValid = false;
+            }
+            
+            // 如果验证通过
+            if (isValid) {
+                // 显示加载状态
+                showLoading('register');
+                // 模拟注册过程
+                setTimeout(() => {
+                    hideLoading('register');
+                    alert('注册成功！请登录');
+                    switchForm('login');
+                    // 清空表单
+                    this.reset();
+                }, 1500);
+            }
+        });
+    </script>
+</body>
+</html>

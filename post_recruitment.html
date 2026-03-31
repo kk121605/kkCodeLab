@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CompeteHub - 发布招募信息</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: all 0.2s ease;
+        }
+        
+        html, body {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        body {
+            background-color: #F9FBFF;
+            color: #333333;
+            line-height: 1.6;
+        }
+        
+        :root {
+            --primary-color: #1890FF;
+            --primary-hover: #096DD9;
+            --light-primary: #E6F4FF;
+            --border-color: #E0E7FF;
+            --text-primary: #333333;
+            --text-secondary: #6C757D;
+            --text-tertiary: #94A3B8;
+            --card-bg: #FFFFFF;
+            --hover-shadow: 0 4px 12px rgba(24, 144, 255, 0.08);
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --top-bar-bg: #165DFF;
+            --cancel-color: #FF4D4F;
+            --cancel-hover: #F5222D;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: var(--top-bar-bg);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 24px;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: none;
+            font-size: 14px;
+            color: #FFFFFF;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+        }
+        
+        .back-btn:hover {
+            color: #E6F4FF;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .logo {
+            font-size: 18px;
+            font-weight: 600;
+            color: #FFFFFF;
+            letter-spacing: 0.5px;
+        }
+        
+        .user-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF;
+            font-weight: 600;
+            border: 1px solid transparent;
+        }
+        
+        .user-avatar:hover {
+            border-color: #FFFFFF;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+        }
+        
+        .dropdown {
+            position: relative;
+        }
+        
+        .dropdown-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            color: #FFFFFF;
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+        }
+        
+        .dropdown-btn:hover {
+            color: #E6F4FF;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            min-width: 140px;
+            padding: 8px 0;
+            box-shadow: var(--hover-shadow);
+            z-index: 101;
+        }
+        
+        .dropdown-content a {
+            display: block;
+            padding: 10px 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: var(--light-primary);
+            color: var(--primary-color);
+        }
+        
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        /* Profile Section */
+        .profile-section {
+            width: 280px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        
+        .profile-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: var(--card-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 12px;
+        }
+        
+        .profile-username {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .profile-school {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+        
+        .profile-info {
+            margin-bottom: 20px;
+        }
+        
+        .profile-info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+        
+        .profile-info-label {
+            color: var(--text-secondary);
+        }
+        
+        .profile-info-value {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .skill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        
+        .skill-tag {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: var(--radius-lg);
+            background-color: var(--light-primary);
+            color: var(--primary-color);
+        }
+        
+        .profile-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 16px 0;
+        }
+        
+        /* Main Content Area */
+        .main-container {
+            margin-top: 70px;
+            display: flex;
+            padding: 24px;
+            gap: 24px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+            flex: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .profile-section {
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                padding: 16px;
+                gap: 16px;
+            }
+        }
+
+        /* Form Container */
+        .form-container {
+            flex: 1;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        
+        .form-header {
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .form-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-title::before {
+            content: "📝";
+            font-size: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            color: var(--text-primary);
+            background-color: var(--card-bg);
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+        }
+        
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .form-col {
+            flex: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+                gap: 20px;
+            }
+        }
+        
+        .skill-tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .skill-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background-color: var(--light-primary);
+            color: var(--primary-color);
+            border-radius: var(--radius-lg);
+            font-size: 12px;
+        }
+        
+        .remove-tag {
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .add-skill-input {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .add-skill-input input {
+            flex: 1;
+        }
+        
+        .btn {
+            padding: 10px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn-primary {
+            background: var(--primary-color);
+            color: var(--card-bg);
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+        }
+        
+        .btn-outline {
+            background: var(--card-bg);
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+        
+        .btn-outline:hover {
+            background: var(--light-primary);
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .preview-section {
+            width: 300px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        
+        .preview-header {
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .preview-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .preview-title::before {
+            content: "👁️";
+            font-size: 18px;
+        }
+        
+        .preview-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        }
+        
+        .preview-competition {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .preview-need {
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        
+        .preview-req {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+        
+        .preview-recruiter {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-bottom: 16px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .preview-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        
+        .preview-skill {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: var(--radius-lg);
+            background-color: var(--light-primary);
+            color: var(--primary-color);
+        }
+        
+        @media (max-width: 768px) {
+            .preview-section {
+                width: 100%;
+            }
+        }
+        
+        /* Footer */
+        .footer {
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-top: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .footer {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+        }
+        
+        .copyright {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+        
+        .footer-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .footer-link {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            text-decoration: none;
+        }
+        
+        .footer-link:hover {
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<!-- Top Bar -->
+<div class="top-bar">
+    <button class="back-btn" onclick="window.location.href='/index'">← 返回首页</button>
+    <div class="logo">CompeteHub</div>
+    <div class="user-area">
+        <div class="user-avatar">U</div>
+        <div class="dropdown">
+            <button class="dropdown-btn">菜单</button>
+            <div class="dropdown-content">
+                <a href="/profile">编辑资料</a>
+                <a href="#">我的团队</a>
+                <a href="#">退出登录</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Area -->
+<div class="main-container">
+    <!-- Profile Section -->
+    <div class="profile-section">
+        <div class="profile-header">
+            <div class="profile-avatar">U</div>
+            <div class="profile-username" id="profileName">张三</div>
+            <div class="profile-school" id="profileSchool">计算机科学 | 北京大学</div>
+        </div>
+        
+        <div class="profile-info">
+            <div class="profile-info-item">
+                <span class="profile-info-label">GPA</span>
+                <span class="profile-info-value" id="profileGPA">3.8/4.0</span>
+            </div>
+        </div>
+        
+        <div class="profile-divider"></div>
+        
+        <div class="profile-info">
+            <h3 class="profile-info-label">技能</h3>
+            <div class="skill-tags" id="profileSkills">
+                <!-- Skills will be loaded from localStorage -->
+            </div>
+        </div>
+        
+        <div class="profile-divider"></div>
+        
+        <div class="profile-info">
+            <h3 class="profile-info-label">以往竞赛经验</h3>
+            <p class="text-sm text-gray-600 mt-2" id="profileExperience">
+                <!-- Competition experience will be loaded from localStorage -->
+            </p>
+        </div>
+    </div>
+    
+    <!-- Form Container -->
+    <div class="form-container">
+        <div class="form-header">
+            <h2 class="form-title">发布招募信息</h2>
+        </div>
+        
+        <form id="recruitmentForm">
+            <div class="form-group">
+                <label class="form-label" for="competition">竞赛名称 *</label>
+                <input type="text" id="competition" class="form-control" placeholder="输入竞赛名称" required>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group form-col">
+                    <label class="form-label" for="positions">需要队友数量 *</label>
+                    <input type="number" id="positions" class="form-control" min="1" max="10" value="1" required>
+                </div>
+                
+                <div class="form-group form-col">
+                    <label class="form-label" for="deadline">申请截止日期</label>
+                    <input type="date" id="deadline" class="form-control">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="description">职位描述 *</label>
+                <textarea id="description" class="form-control" placeholder="描述你正在寻找的队友的角色和职责" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="requirements">要求</label>
+                <textarea id="requirements" class="form-control" placeholder="列出技能、经验等要求"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">所需技能</label>
+                <div class="skill-tags-container" id="skillsContainer">
+                    <!-- 技能将在这里动态添加 -->
+                </div>
+                <div class="add-skill-input">
+                    <input type="text" id="skillInput" class="form-control" placeholder="添加技能（例如：Python，数据分析）">
+                    <button type="button" id="addSkillBtn" class="btn btn-outline">添加</button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="contact">联系方式</label>
+                <input type="text" id="contact" class="form-control" placeholder="邮箱、电话或其他联系方式">
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">📤 发布招募</button>
+                <button type="button" class="btn btn-outline" onclick="clearForm()">🧹 清空表单</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Preview Section -->
+    <div class="preview-section">
+        <div class="preview-header">
+            <h3 class="preview-title">预览</h3>
+        </div>
+        <div class="preview-card">
+            <div class="preview-competition" id="previewCompetition">竞赛名称</div>
+            <div class="preview-need" id="previewPositions">需求：1名队友</div>
+            <div class="preview-req" id="previewDescription">职位描述将显示在这里</div>
+            <div class="preview-req" id="previewRequirements">要求将显示在这里</div>
+            <div class="preview-skills" id="previewSkills">
+                <!-- 技能将显示在这里 -->
+            </div>
+            <div class="preview-recruiter" id="previewRecruiter">发布者：您的名字</div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+        <div class="copyright">© 2025 CompeteHub. 保留所有权利。</div>
+        <div class="footer-links">
+            <a href="#" class="footer-link">隐私政策</a>
+            <a href="#" class="footer-link">服务条款</a>
+            <a href="#" class="footer-link">联系我们</a>
+        </div>
+    </div>
+
+<script>
+    // Skills array
+    let skills = [];
+    
+    // DOM Elements
+    const recruitmentForm = document.getElementById('recruitmentForm');
+    const skillsContainer = document.getElementById('skillsContainer');
+    const skillInput = document.getElementById('skillInput');
+    const addSkillBtn = document.getElementById('addSkillBtn');
+    
+    // Preview elements
+    const previewCompetition = document.getElementById('previewCompetition');
+    const previewPositions = document.getElementById('previewPositions');
+    const previewDescription = document.getElementById('previewDescription');
+    const previewRequirements = document.getElementById('previewRequirements');
+    const previewSkills = document.getElementById('previewSkills');
+    const previewRecruiter = document.getElementById('previewRecruiter');
+    
+    // Form fields
+    const competitionField = document.getElementById('competition');
+    const positionsField = document.getElementById('positions');
+    const descriptionField = document.getElementById('description');
+    const requirementsField = document.getElementById('requirements');
+    
+    // Add skill function
+    function addSkill() {
+        const skill = skillInput.value.trim();
+        if (skill && !skills.includes(skill)) {
+            skills.push(skill);
+            renderSkills();
+            skillInput.value = '';
+            updatePreview();
+        }
+    }
+    
+    // Remove skill function
+    function removeSkill(skill) {
+        skills = skills.filter(s => s !== skill);
+        renderSkills();
+        updatePreview();
+    }
+    
+    // Render skills as tags
+    function renderSkills() {
+        skillsContainer.innerHTML = '';
+        skills.forEach(skill => {
+            const skillTag = document.createElement('span');
+            skillTag.className = 'skill-tag';
+            skillTag.innerHTML = `${skill} <span class="remove-tag" onclick="removeSkill('${skill}')">&times;</span>`;
+            skillsContainer.appendChild(skillTag);
+        });
+    }
+    
+    // 更新预览
+        function updatePreview() {
+            previewCompetition.textContent = competitionField.value || '竞赛名称';
+            previewPositions.textContent = `需求：${positionsField.value || '1'}名队友${positionsField.value > 1 ? 's' : ''}`;
+            previewDescription.textContent = descriptionField.value || '职位描述将显示在这里';
+            previewRequirements.textContent = requirementsField.value || '要求将显示在这里';
+        
+        // Update skills preview
+        previewSkills.innerHTML = '';
+        skills.forEach(skill => {
+            const skillSpan = document.createElement('span');
+            skillSpan.className = 'preview-skill';
+            skillSpan.textContent = skill;
+            previewSkills.appendChild(skillSpan);
+        });
+    }
+    
+    // 清空表单
+        function clearForm() {
+            recruitmentForm.reset();
+            skills = [];
+            renderSkills();
+            updatePreview();
+        }
+    
+    // Event listeners
+    addSkillBtn.addEventListener('click', addSkill);
+    skillInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            addSkill();
+        }
+    });
+    
+    // Form fields event listeners for preview
+    competitionField.addEventListener('input', updatePreview);
+    positionsField.addEventListener('input', updatePreview);
+    descriptionField.addEventListener('input', updatePreview);
+    requirementsField.addEventListener('input', updatePreview);
+    
+    // 表单提交
+        recruitmentForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // 获取表单数据
+            const recruitmentData = {
+                competition: competitionField.value,
+                positions: positionsField.value,
+                description: descriptionField.value,
+                requirements: requirementsField.value,
+                skills: skills,
+                contact: document.getElementById('contact').value,
+                deadline: document.getElementById('deadline').value,
+                recruiter: '当前用户（您的专业，您的大学）',
+                timeAgo: '刚刚'
+            };
+            
+            // 保存到本地存储
+            let recruitmentPosts = JSON.parse(localStorage.getItem('recruitmentPosts')) || [];
+            recruitmentPosts.unshift(recruitmentData); // 添加到开头
+            localStorage.setItem('recruitmentPosts', JSON.stringify(recruitmentPosts));
+            
+            alert('招募信息发布成功！');
+            
+            // 重定向回组队页面
+            window.location.href = '/static/team.html';
+        });
+    
+    // 从本地存储加载用户资料
+    function loadUserProfile() {
+        const userData = JSON.parse(localStorage.getItem('userProfile')) || {
+            name: '张三',
+            school: '计算机科学 | 北京大学',
+            gpa: '3.8/4.0',
+            skills: ['Python', '数据分析', '商业策划'],
+            competitionExperience: '2024全国数学建模竞赛 - 二等奖'
+        };
+        
+        // Update profile information
+        document.getElementById('profileName').textContent = userData.name;
+        document.getElementById('profileSchool').textContent = userData.school;
+        document.getElementById('profileGPA').textContent = userData.gpa;
+        document.getElementById('profileExperience').textContent = userData.competitionExperience;
+        
+        // Update skills
+        const skillsContainer = document.getElementById('profileSkills');
+        skillsContainer.innerHTML = '';
+        
+        userData.skills.forEach(skill => {
+            const skillTag = document.createElement('span');
+            skillTag.className = 'skill-tag';
+            skillTag.textContent = skill;
+            skillsContainer.appendChild(skillTag);
+        });
+    }
+    
+    // 初始化预览
+    updatePreview();
+    // 加载用户资料
+    loadUserProfile();
+    
+    // Make functions available globally for inline event handlers
+    window.removeSkill = removeSkill;
+    window.clearForm = clearForm;
+</script>
+</body>
+</html>

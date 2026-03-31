@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Competition Experience Sharing Library</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+        }
+
+        /* Top blue header section */
+        .header {
+            background-color: #165DFF; /* Main blue color - reference design */
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(22, 93, 255, 0.15);
+            position: relative;
+            z-index: 10;
+        }
+        .header h1 {
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header h1::before {
+            content: "🎯";
+            font-size: 24px;
+        }
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .back-button {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.2s ease;
+        }
+        .back-button:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        .search-bar {
+            display: flex;
+            gap: 10px;
+        }
+        .search-bar input {
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: none;
+            width: 200px;
+            transition: all 0.3s ease;
+        }
+        .search-bar input:focus {
+            width: 250px;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+        }
+        .search-bar button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #fff;
+            color: #165DFF;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        .search-bar button:hover {
+            background-color: #f0f5ff;
+            transform: translateY(-1px);
+        }
+
+        /* Main container */
+        .container {
+            display: flex;
+            height: calc(100vh - 60px); /* Subtract header height */
+        }
+
+        /* Left experience list section */
+        .exp-list {
+            width: 35%;
+            padding: 20px;
+            border-right: 1px solid #eee;
+            overflow-y: auto;
+            background-color: #f9fbff;
+        }
+        .exp-card {
+            border: 1px solid #e0e7ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .exp-card::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background-color: transparent;
+            transition: background-color 0.3s ease;
+        }
+        .exp-card:hover {
+            background-color: #f8faff;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(22, 93, 255, 0.08);
+        }
+        .exp-card:hover::before {
+            background-color: #165DFF;
+        }
+        .exp-card.active {
+            border-color: #165DFF;
+            box-shadow: 0 5px 15px rgba(22, 93, 255, 0.1);
+        }
+        .exp-card.active::before {
+            background-color: #165DFF;
+        }
+        .exp-card h3 {
+            color: #165DFF;
+            font-size: 18px;
+            margin-bottom: 8px;
+            transition: color 0.3s ease;
+        }
+        .exp-card:hover h3 {
+            color: #0e42d2;
+        }
+        .exp-card .meta {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .exp-card .tags {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .exp-card .tag {
+            background-color: #e8f3ff;
+            color: #165DFF;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+        .exp-card:hover .tag {
+            background-color: #d6eaff;
+        }
+        .exp-card .intro {
+            color: #495057;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Right detail scroll section */
+        .exp-detail {
+            width: 65%;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: white;
+        }
+        .empty-tip {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 16px;
+            flex-direction: column;
+            gap: 15px;
+            transition: all 0.3s ease;
+        }
+        .empty-tip::before {
+            content: "📄";
+            font-size: 48px;
+            opacity: 0.5;
+        }
+        .detail-content {
+            display: none;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .detail-content.active {
+            display: block;
+        }
+        .detail-content h2 {
+            color: #165DFF;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e7ff;
+        }
+        .detail-content .share-info {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 20px;
+            padding: 8px 12px;
+            background-color: #f8faff;
+            border-radius: 4px;
+        }
+        .detail-content .content {
+            line-height: 1.8;
+            color: #495057;
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: #fcfdff;
+            border-radius: 8px;
+            border: 1px solid #f0f5ff;
+        }
+        .detail-content .content p {
+            margin-bottom: 15px;
+            position: relative;
+            padding-left: 20px;
+        }
+        .detail-content .content p::before {
+            content: "•";
+            color: #165DFF;
+            position: absolute;
+            left: 5px;
+        }
+        .detail-content .actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .detail-content button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #165DFF;
+            color: white;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .detail-content button:hover {
+            background-color: #0e42d2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(22, 93, 255, 0.2);
+        }
+        .detail-content button:active {
+            transform: translateY(0);
+        }
+
+        /* Bottom buttons */
+        .footer-buttons {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 5;
+        }
+        .footer-buttons button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #165DFF;
+            color: white;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 8px rgba(22, 93, 255, 0.2);
+        }
+        .footer-buttons button:hover {
+            background-color: #0e42d2;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(22, 93, 255, 0.3);
+        }
+        .footer-buttons button:first-child {
+            background-color: #36b37e;
+        }
+        .footer-buttons button:first-child:hover {
+            background-color: #2d9d6b;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+<!-- Top blue header section -->
+<div class="header">
+    <div class="header-actions">
+        <button class="back-button" id="backButton">
+            <span>←</span> 返回主页
+        </button>
+        <h1>竞赛经验分享库</h1>
+    </div>
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="搜索竞赛/团队/关键词">
+        <button id="searchButton">搜索</button>
+    </div>
+</div>
+
+<!-- Main container -->
+<div class="container">
+    <!-- Left experience list -->
+    <div class="exp-list">
+        <div class="exp-card" data-id="exp1">
+            <h3>ACM 程序设计竞赛备赛经验</h3>
+            <div class="meta">
+                <span>分享者：Team X</span>
+                <span>2025 年 5 月</span>
+            </div>
+            <div class="tags">
+                <span class="tag">算法训练</span>
+                <span class="tag">团队分工</span>
+            </div>
+            <div class="intro">如何从零组队并在 3 个月内晋级区域赛，重点为“模块化训练 + 模拟赛复盘”...</div>
+        </div>
+        <div class="exp-card" data-id="exp2">
+            <h3>创业大赛路演技巧</h3>
+            <div class="meta">
+                <span>分享者：Li</span>
+                <span>2025 年 3 月</span>
+            </div>
+            <div class="tags">
+                <span class="tag">PPT 设计</span>
+                <span class="tag">路演话术</span>
+            </div>
+            <div class="intro">评委最关心的 3 个要点：市场痛点、盈利模式、团队执行力。路演要在“1 分钟内吸引注意力”...</div>
+        </div>
+    </div>
+
+    <!-- Right detail section -->
+    <div class="exp-detail">
+        <div class="empty-tip" id="emptyTip">请在左侧选择经验卡片以查看详情</div>
+
+        <!-- Experience 1 details -->
+        <div class="detail-content" id="exp1">
+            <h2>ACM 程序设计竞赛备赛经验</h2>
+            <div class="share-info">分享团队：Team X | 比赛日期：2025-05-10</div>
+            <div class="content">
+                <p>1. 训练计划：第一个月侧重模块化训练（贪心/动态规划/图论）；接下来两个月每周进行 3 次模拟赛，赛后安排 2 小时复盘；</p>
+                <p>2. 团队分工：固定角色为“算法设计者 + 代码实现者 + 调试者”。比赛中一人读题，两人写代码，避免重复工作；</p>
+                <p>3. 工具准备：提前配置 IDE 模板，将常用算法片段存入云笔记，节省现场编码时间。</p>
+            </div>
+            <div class="actions">
+                
+            </div>
+        </div>
+
+        <!-- Experience 2 details -->
+        <div class="detail-content" id="exp2">
+            <h2>创业大赛路演技巧</h2>
+            <div class="share-info">分享者：Li | 比赛日期：2025-03-20</div>
+            <div class="content">
+                <p>1. PPT 逻辑：第 1 页 - “用户痛点”（举真实案例）；第 2 页 - “我们的方案”；第 3 页 - “盈利模式”；</p>
+                <p>2. 答辩技巧：先用“是/否”回答评委问题，再补充 1-2 个数据点，例如 “我们的用户复购率为 35%，原因是……”；</p>
+                <p>3. 细节：路演统一着正装，提前 1 小时测试设备以避免 PPT 播放故障。</p>
+            </div>
+            <div class="actions">
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom buttons -->
+<div class="footer-buttons">
+    <button id="postExperienceBtn">✏️ 发布新经验</button>
+</div>
+
+<script>
+    // Store all experience data for search functionality
+    let experienceData = [];
+    
+    // Function to fetch experiences from API
+    async function fetchExperiences() {
+        try {
+            const response = await fetch('/api/experiences?page=1&pageSize=100');
+            const data = await response.json();
+            if (data.code === 200 && Array.isArray(data.data.list) && data.data.list.length > 0) {
+                experienceData = data.data.list;
+                renderExperienceList(experienceData);
+            } else {
+                // 如果API未返回数据，保留静态示例内容，不清空页面
+                console.warn('No experiences returned from API, keeping static examples.');
+            }
+        } catch (error) {
+            console.error('Error fetching experiences:', error);
+            // 当发生错误时保留静态示例内容
+        }
+    }
+    
+    // Function to render experience list
+    function renderExperienceList(experiences) {
+        const expList = document.querySelector('.exp-list');
+        expList.innerHTML = '';
+        
+        experiences.forEach(exp => {
+            const cardElement = document.createElement('div');
+            cardElement.className = 'exp-card';
+            cardElement.dataset.id = exp.id;
+            cardElement.innerHTML = `
+                <h3>${exp.title}</h3>
+                <div class="meta">
+                    <span>Shared by: ${exp.shared_by}</span>
+                    <span>${exp.date}</span>
+                </div>
+                <div class="tags">
+                    ${exp.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                </div>
+                <div class="intro">${exp.intro}</div>
+            `;
+            
+            // Add click event listener to the new card
+            cardElement.addEventListener('click', () => {
+                // Remove active class from all cards
+                expCards.forEach(c => c.classList.remove('active'));
+                // Add active class to the clicked card
+                cardElement.classList.add('active');
+                
+                // Hide empty tip
+                emptyTip.style.display = 'none';
+                
+                // Fetch and show experience details
+                fetchExperienceDetail(exp.id);
+            });
+            
+            expList.appendChild(cardElement);
+        });
+        
+        // Update expCards variable with new cards
+        expCards = document.querySelectorAll('.exp-card');
+    }
+
+    // Bind click handlers for any existing/static cards (fallback when API returns no data)
+    function bindExistingCards() {
+        const existingCards = document.querySelectorAll('.exp-card');
+        existingCards.forEach(card => {
+            card.addEventListener('click', () => {
+                // remove active from all
+                document.querySelectorAll('.exp-card').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                // hide empty tip
+                if (emptyTip) emptyTip.style.display = 'none';
+                // show corresponding detail (static ids like 'exp1' / 'exp2')
+                document.querySelectorAll('.detail-content').forEach(d => d.classList.remove('active'));
+                const detail = document.getElementById(card.dataset.id);
+                if (detail) detail.classList.add('active');
+            });
+        });
+        expCards = document.querySelectorAll('.exp-card');
+    }
+    
+    // Function to fetch experience details
+    async function fetchExperienceDetail(experienceId) {
+        try {
+            const response = await fetch(`/api/experiences/${experienceId}`);
+            const data = await response.json();
+            if (data.code === 200) {
+                showExperienceDetail(data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching experience details:', error);
+        }
+    }
+    
+    // Function to show experience details
+    function showExperienceDetail(experience) {
+        // Hide all detail contents
+        detailContents.forEach(content => content.classList.remove('active'));
+        
+        // Check if detail content already exists
+        let detailContent = document.getElementById(`exp_${experience.id}`);
+        
+        // If not exists, create it
+        if (!detailContent) {
+            detailContent = document.createElement('div');
+            detailContent.className = 'detail-content';
+            detailContent.id = `exp_${experience.id}`;
+            
+            // Create content
+            detailContent.innerHTML = `
+                <h2>${experience.title}</h2>
+                <div class="share-info">Sharing Team: ${experience.shared_by} | Competition Date: ${experience.date}</div>
+                <div class="content">
+                    ${experience.content.split('\n').map(paragraph => `<p>${paragraph}</p>`).join('')}
+                </div>
+                <div class="actions">
+                </div>
+            `;
+            
+            // Append to exp-detail container
+            document.querySelector('.exp-detail').appendChild(detailContent);
+        }
+        
+        // Show the detail content
+        detailContent.classList.add('active');
+        
+        // Update detailContents variable
+        detailContents = document.querySelectorAll('.detail-content');
+    }
+
+    // Initialize variables
+    let expCards = [];
+    let detailContents = [];
+    const emptyTip = document.getElementById('emptyTip');
+
+    // Fetch experiences when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        // Always bind existing static cards so clicks work even if API returns no data
+        bindExistingCards();
+        fetchExperiences();
+    });
+
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    const searchButton = document.getElementById('searchButton');
+    const expList = document.querySelector('.exp-list');
+
+    // Function to filter experiences based on search term
+    function searchExperiences(term) {
+        // Clear current list
+        expList.innerHTML = '';
+        
+        // Filter experiences
+        const filteredExperiences = experienceData.filter(exp => {
+            // Check in title, author, tags, and intro
+            const inTitle = exp.title.toLowerCase().includes(term.toLowerCase());
+            const inAuthor = exp.shared_by.toLowerCase().includes(term.toLowerCase());
+            const inTags = exp.tags.some(tag => tag.toLowerCase().includes(term.toLowerCase()));
+            const inIntro = exp.intro.toLowerCase().includes(term.toLowerCase());
+            
+            return inTitle || inAuthor || inTags || inIntro;
+        });
+        
+        // Display filtered experiences or show "no results" message
+        if (filteredExperiences.length === 0) {
+            expList.innerHTML = '<div class="no-results">No experiences found matching your search.</div>';
+            // Hide all detail contents and show empty tip
+            detailContents.forEach(content => content.classList.remove('active'));
+            emptyTip.style.display = 'flex';
+        } else {
+            // Rebuild the list with filtered experiences
+            renderExperienceList(filteredExperiences);
+        }
+    }
+
+    // Event listeners for search
+    searchButton.addEventListener('click', () => {
+        const searchTerm = searchInput.value.trim();
+        if (searchTerm) {
+            searchExperiences(searchTerm);
+        }
+    });
+
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            const searchTerm = searchInput.value.trim();
+            if (searchTerm) {
+                searchExperiences(searchTerm);
+            }
+        }
+    });
+
+    // Add event listener for back button
+    const backButton = document.getElementById('backButton');
+    backButton.addEventListener('click', () => {
+        window.location.href = '/index';
+    });
+
+    // Add event listener for post experience button
+    const postExperienceBtn = document.getElementById('postExperienceBtn');
+    postExperienceBtn.addEventListener('click', () => {
+        window.location.href = '/static/post_experience.html';
+    });
+
+    // Add some basic styling for no results message
+    const style = document.createElement('style');
+    style.textContent = `
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            font-style: italic;
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+</body>
+</html>

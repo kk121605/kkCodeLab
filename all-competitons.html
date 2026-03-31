@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compete Hub - All Competitions</title>
+    <!-- 外部资源 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- Tailwind配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#FF7D00',
+                        neutral: '#F5F7FA',
+                        dark: '#333333',
+                        danger: '#FF4D4F'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'Microsoft YaHei', 'sans-serif'],
+                    },
+                },
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            }
+            .btn-hover {
+                @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5;
+            }
+            .filter-active {
+                @apply bg-primary text-white border-primary;
+            }
+            .detail-item {
+                @apply py-4 border-b border-gray-100 last:border-0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-neutral min-h-screen font-sans text-dark">
+    <!-- 顶部导航栏 -->
+    <header class="sticky top-0 z-50 bg-white shadow-sm transition-all duration-300">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                    <i class="fa fa-graduation-cap text-white text-xl"></i>
+                </div>
+                <h1 class="text-xl font-bold text-primary">Compete Hub</h1>
+            </div>
+            <div class="hidden md:flex items-center space-x-3">
+                <button onclick="window.location.href='/index'" class="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-colors btn-hover">
+                    <i class="fa fa-arrow-left mr-2"></i>返回首页
+                </button>
+                <button onclick="window.location.href='/'" class="px-4 py-2 border border-danger/30 text-danger rounded-lg hover:bg-danger/5 transition-colors btn-hover">
+                    <i class="fa fa-sign-out mr-2"></i>退出登录
+                </button>
+            </div>
+            <button class="md:hidden text-dark text-xl" onclick="window.location.href='/index'">
+                <i class="fa fa-arrow-left"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <!-- 页面标题 -->
+        <div class="mb-8 text-center md:text-left">
+                <h2 class="text-2xl md:text-3xl font-bold mb-2 flex items-center justify-center md:justify-start">
+                <i class="fa fa-trophy text-secondary mr-3"></i>全部竞赛
+            </h2>
+            <p class="text-gray-500">搜索并查看完整竞赛信息，实时同步最新动态</p>
+        </div>
+
+        <!-- 搜索区域 -->
+        <div class="bg-white rounded-xl p-4 md:p-6 card-shadow mb-8">
+            <div class="relative max-w-2xl mx-auto">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="搜索竞赛名称/主办方..." 
+                    class="w-full h-12 pl-10 pr-4 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                    onkeyup="if(event.keyCode === 13) getCompetitionList()"
+                >
+                <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            </div>
+        </div>
+
+        <!-- 竞赛详情列表 -->
+        <div id="competitionList" class="space-y-6 mb-8">
+            <!-- 加载状态（初始显示） -->
+            <div class="bg-white rounded-xl p-8 card-shadow flex justify-center items-center">
+                <div class="flex flex-col items-center">
+                    <i class="fa fa-spinner fa-spin text-primary text-2xl mb-3"></i>
+                    <span class="text-gray-500">竞赛信息加载中...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 分页控件 -->
+        <div id="pagination" class="flex justify-center items-center space-x-2 mb-8 hidden">
+            <button id="prevPage" class="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center btn-hover disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                <i class="fa fa-chevron-left"></i>
+            </button>
+            <div id="pageNumbers" class="flex space-x-1">
+                <!-- 分页数字由JS动态生成 -->
+            </div>
+            <button id="nextPage" class="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center btn-hover">
+                <i class="fa fa-chevron-right"></i>
+            </button>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-white mt-12 py-8 border-t border-gray-100">
+        <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
+            <p>© 2025 CompeteHub - Focused on University Student Competitions</p>
+        
+        </div>
+    </footer>
+
+    <script>
+        // 1. Login status verification (optional for viewing competitions)
+        function checkLoginStatus() {
+            const userInfoStr = localStorage.getItem('competeHubUser');
+            if (!userInfoStr) {
+                // 允许未登录用户查看竞赛列表
+                return true;
+            }
+            const userInfo = JSON.parse(userInfoStr);
+            const nowTime = new Date().getTime();
+            if (nowTime > userInfo.loginTime + userInfo.expiresIn) {
+                localStorage.removeItem('competeHubUser');
+                // 登录过期仍允许查看竞赛列表
+                return true;
+            }
+            return true;
+        }
+
+        // 2. Pagination and filtering parameters
+        let currentPage = 1;
+        const pageSize = 100; // 每页显示100条，用于开发时一次加载更多竞赛
+        let totalPages = 1;
+
+        // 3. Backend API: 在本地开发时使用本地绝对地址，生产/其它环境使用相对路径
+        const competitionApi = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost')
+            ? 'http://127.0.0.1:5000/api/competitions'
+            : '/api/competitions';
+
+        // 4. Fetch and render complete competition information
+        function getCompetitionList() {
+            console.log('getCompetitionList called');
+            const params = {
+                page: currentPage,
+                pageSize: pageSize,
+                keyword: document.getElementById('searchInput').value.trim()
+            };
+            console.log('API params:', params);
+
+            const listContainer = document.getElementById('competitionList');
+            if (!listContainer) {
+                console.error('competitionList element not found');
+                return;
+            }
+            listContainer.innerHTML = `
+                <div class="bg-white rounded-xl p-8 card-shadow flex justify-center items-center">
+                    <div class="flex flex-col items-center">
+                        <i class="fa fa-spinner fa-spin text-primary text-2xl mb-3"></i>
+                        <span class="text-gray-500">竞赛信息加载中...</span>
+                    </div>
+                </div>
+            `;
+
+            // 获取token，添加错误处理
+            let token = '';
+            try {
+                const userInfoStr = localStorage.getItem('competeHubUser');
+                if (userInfoStr) {
+                    const userInfo = JSON.parse(userInfoStr);
+                    token = userInfo.token;
+                }
+            } catch (e) {
+                console.error('获取用户信息失败:', e);
+            }
+
+            console.log('Fetching from:', `${competitionApi}?${new URLSearchParams(params)}`);
+            fetch(`${competitionApi}?${new URLSearchParams(params)}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ''
+                }
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (response.status === 401) {
+                    localStorage.removeItem('competeHubUser');
+                    alert('登录态失效，请重新登录');
+                    window.location.href = 'login.html';
+                    return Promise.reject('未授权');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('API response data:', data);
+                listContainer.innerHTML = '';
+                // 后端返回完整信息格式示例：
+                // {
+                //   "code": 200,
+                //   "data": {
+                //     "list": [
+                //       {
+                //         "id": 1,
+                //         "name": "全国大学生计算机设计大赛",
+                //         "level": "国家级",
+                //         "type": "综合类",
+                //         "tag": "热门",
+                //         "coverImg": "xxx.jpg",
+                //         "applyStartTime": "2025-03-01",
+                //         "applyEndTime": "2025-05-31", // 报名截止时间
+                //         "competitionTime": "2025-07-15", // 比赛时间
+                //         "organizer": "教育部高等学校计算机类专业教学指导委员会", // 主办方
+                //         "participant": "全国普通高校全日制本科生", // 参赛对象
+                //         "requirements": "团队人数≤3人，指导教师≤1人...", // 参赛要求
+                //         "awards": "国家级一等奖（5%）、二等奖（15%）、三等奖（25%）...", // 奖项设置
+                //         "desc": "大赛旨在培养学生创新能力...", // 竞赛简介
+                //         "contact": "官网：https://xxx.com 咨询电话：123456" // 联系方式
+                //       }
+                //     ],
+                //     "total": 总条数,
+                //     "totalPages": 总页数
+                //   }
+                // }
+
+                if (data.code === 200 && data.data.list.length > 0) {
+                    totalPages = data.data.totalPages;
+                    currentPage = data.data.page;
+                    renderPagination();
+
+                    data.data.list.forEach(item => {
+                        // 级别颜色标识
+                        let levelColor = '';
+                        if (item.level === '国家级') levelColor = 'text-red-500 bg-red-50';
+                        else if (item.level === '省级') levelColor = 'text-primary bg-primary/10';
+                        else if (item.level === '市级') levelColor = 'text-green-600 bg-green-50';
+                        else levelColor = 'text-gray-500 bg-gray-50';
+
+                        // 完整信息块HTML
+                        const detailHtml = `
+                            <div class="bg-white rounded-xl overflow-hidden card-shadow hover:shadow-lg transition-all duration-300">
+                                <!-- 顶部封面与标题 -->
+                                <div class="md:flex">
+                                    <div class="md:w-1/3 h-48 md:h-auto overflow-hidden">
+                                        <img src="${item.coverImg || 'https://picsum.photos/seed/comp' + item.id + '/600/400'}" 
+                                             alt="${item.name}" 
+                                             class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                                    </div>
+                                    <div class="md:w-2/3 p-5 md:p-6">
+                                        <div class="flex flex-wrap justify-between items-start gap-2">
+                                            <h3 class="text-xl font-bold">${item.name}</h3>
+                                            <span class="px-3 py-1 text-sm rounded-full ${item.tag === '热门' ? 'bg-secondary/10 text-secondary' : item.tag === '即将截止' ? 'bg-danger/10 text-danger' : 'bg-primary/10 text-primary'}">
+                                                ${item.tag || '普通竞赛'}
+                                            </span>
+                                        </div>
+                                        <div class="mt-3 flex flex-wrap gap-3">
+                                            <span class="px-3 py-1 text-sm rounded-full ${levelColor}">
+                                                <i class="fa fa-flag-o mr-1"></i>${item.level || '未分类'}
+                                            </span>
+                                            <span class="px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-600">
+                                                <i class="fa fa-tag mr-1"></i>${item.type || '综合类'}
+                                            </span>
+                                            <span class="px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-600">
+                                                <i class="fa fa-building-o mr-1"></i>${item.organizer || '未公布'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 详细信息区域 -->
+                                <div class="p-5 md:p-6">
+                                    <!-- 时间信息 -->
+                                    <div class="detail-item">
+                                        <h4 class="text-sm font-semibold text-gray-500 mb-2">时间安排</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                            <div class="flex items-start">
+                                                <i class="fa fa-calendar-check-o text-primary mt-1 mr-3"></i>
+                                                <div>
+                                                    <p class="text-sm text-gray-500">报名开始</p>
+                                                    <p class="font-medium">${item.applyStartTime || '未公布'}</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-start">
+                                                <i class="fa fa-calendar-times-o text-danger mt-1 mr-3"></i>
+                                                <div>
+                                                    <p class="text-sm text-gray-500">报名截止</p>
+                                                    <p class="font-medium">${item.applyEndTime || '未公布'}</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-start">
+                                                <i class="fa fa-trophy text-secondary mt-1 mr-3"></i>
+                                                <div>
+                                                    <p class="text-sm text-gray-500">比赛时间</p>
+                                                    <p class="font-medium">${item.competitionTime || '未公布'}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 参赛信息 -->
+                                    <div class="detail-item">
+                                        <h4 class="text-sm font-semibold text-gray-500 mb-2">参赛信息</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div class="flex">
+                                                <i class="fa fa-users text-primary mt-1 mr-3 w-5 text-center"></i>
+                                                <div>
+                                                    <p class="text-sm text-gray-500">参赛对象</p>
+                                                    <p>${item.participant || '未公布'}</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex">
+                                                <i class="fa fa-list-alt text-primary mt-1 mr-3 w-5 text-center"></i>
+                                                <div>
+                                                    <p class="text-sm text-gray-500">参赛要求</p>
+                                                    <p>${item.requirements || '未公布'}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 奖项与简介 -->
+                                    <div class="detail-item">
+                                        <h4 class="text-sm font-semibold text-gray-500 mb-2">奖项设置</h4>
+                                        <p class="mb-4">${item.awards || '未公布'}</p>
+                                        
+                                        <h4 class="text-sm font-semibold text-gray-500 mb-2">竞赛简介</h4>
+                                        <p class="text-gray-600">${item.desc || '暂无简介'}</p>
+                                    </div>
+
+                                    <!-- 联系方式 -->
+                                    <div class="detail-item">
+                                        <h4 class="text-sm font-semibold text-gray-500 mb-2">联系方式</h4>
+                                        <p class="text-primary break-all">${item.contact || '未公布'}</p>
+                                    </div>
+
+
+                                </div>
+                            </div>
+                        `;
+                        listContainer.innerHTML += detailHtml;
+                    });
+                } else {
+                    listContainer.innerHTML = `
+                        <div class="bg-white rounded-xl p-8 card-shadow flex justify-center items-center">
+                            <div class="flex flex-col items-center text-gray-500">
+                                <i class="fa fa-info-circle text-2xl mb-3"></i>
+                                <span>未找到符合条件的竞赛</span>
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('pagination').classList.add('hidden');
+                }
+            })
+            .catch(error => {
+                if (error !== '未授权') {
+                    listContainer.innerHTML = `
+                        <div class="bg-white rounded-xl p-8 card-shadow flex justify-center items-center">
+                            <div class="flex flex-col items-center text-red-500">
+                                <i class="fa fa-exclamation-circle text-2xl mb-3"></i>
+                                <span>竞赛信息加载失败，请刷新页面或稍后重试</span>
+                            </div>
+                        </div>
+                    `;
+                    console.error('Competition API error:', error);
+                }
+            });
+        }
+
+        // 5. Pagination controls
+        function renderPagination() {
+            const paginationContainer = document.getElementById('pagination');
+            const pageNumbersContainer = document.getElementById('pageNumbers');
+            pageNumbersContainer.innerHTML = '';
+
+            if (totalPages <= 1) {
+                paginationContainer.classList.add('hidden');
+                return;
+            }
+
+            paginationContainer.classList.remove('hidden');
+            document.getElementById('prevPage').disabled = currentPage === 1;
+            document.getElementById('nextPage').disabled = currentPage === totalPages;
+
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+            if (endPage - startPage < 4) {
+                if (startPage === 1) endPage = Math.min(5, totalPages);
+                if (endPage === totalPages) startPage = Math.max(1, totalPages - 4);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.className = `w-10 h-10 rounded-full border ${i === currentPage ? 'bg-primary text-white border-primary' : 'border-gray-200 text-dark'} flex items-center justify-center btn-hover`;
+                pageBtn.textContent = i;
+                pageBtn.onclick = () => {
+                    currentPage = i;
+                    getCompetitionList();
+                };
+                pageNumbersContainer.appendChild(pageBtn);
+            }
+        }
+
+        // 6. Event binding (filtering, searching, pagination)
+        // Safe event binding: check elements exist before adding listeners
+        const filterButtons = document.querySelectorAll('[data-type]');
+        if (filterButtons && filterButtons.length) {
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    filterButtons.forEach(b => b.classList.remove('filter-active'));
+                    this.classList.add('filter-active');
+                    currentPage = 1;
+                    getCompetitionList();
+                });
+            });
+        }
+
+        const searchBtn = document.getElementById('searchBtn');
+        if (searchBtn) {
+            searchBtn.addEventListener('click', () => {
+                currentPage = 1;
+                getCompetitionList();
+            });
+        }
+
+        const searchInputEl = document.getElementById('searchInput');
+        if (searchInputEl) {
+            searchInputEl.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    currentPage = 1;
+                    getCompetitionList();
+                }
+            });
+        }
+
+        const prevPageBtn = document.getElementById('prevPage');
+        if (prevPageBtn) {
+            prevPageBtn.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    getCompetitionList();
+                }
+            });
+        }
+
+        const nextPageBtn = document.getElementById('nextPage');
+        if (nextPageBtn) {
+            nextPageBtn.addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    getCompetitionList();
+                }
+            });
+        }
+
+        // Page load initialization
+        window.addEventListener('DOMContentLoaded', () => {
+            getCompetitionList();
+        });
+    </script>
+</body>
+</html>

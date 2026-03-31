@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compete Hub - AI智能推荐</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#FF7D00',
+                        neutral: '#F5F7FA',
+                        dark: '#333333',
+                        danger: '#FF4D4F'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'Microsoft YaHei', 'sans-serif'],
+                    },
+                },
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            }
+            .btn-hover {
+                @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5;
+            }
+            .filter-active {
+                @apply bg-primary text-white border-primary;
+            }
+            .detail-item {
+                @apply py-4 border-b border-gray-100 last:border-0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-neutral min-h-screen font-sans text-dark">
+    <header class="sticky top-0 z-50 bg-white shadow-sm transition-all duration-300">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                    <i class="fa fa-graduation-cap text-white text-xl"></i>
+                </div>
+                <h1 class="text-xl font-bold text-primary">Compete Hub</h1>
+            </div>
+            <div class="hidden md:flex items-center space-x-3">
+                <button onclick="window.location.href='/index'" class="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-colors btn-hover">
+                    <i class="fa fa-arrow-left mr-2"></i>返回首页
+                </button>
+                <button onclick="window.location.href='/'" class="px-4 py-2 border border-danger/30 text-danger rounded-lg hover:bg-danger/5 transition-colors btn-hover">
+                    <i class="fa fa-sign-out mr-2"></i>退出登录
+                </button>
+            </div>
+            <button class="md:hidden text-dark text-xl" onclick="window.location.href='/index'">
+                <i class="fa fa-arrow-left"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <div class="mb-8 text-center md:text-left">
+            <h2 class="text-2xl md:text-3xl font-bold mb-2 flex items-center justify-center md:justify-start">
+                <i class="fa fa-star text-secondary mr-3"></i>AI智能推荐
+            </h2>
+            <p class="text-gray-500">根据你选择的兴趣方向，系统会在数据库中匹配并推荐相关竞赛</p>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-6">
+            <!-- 左侧兴趣展示区 -->
+            <div class="w-full md:w-1/4 bg-white rounded-xl p-6 card-shadow">
+                <h3 class="font-medium mb-4">你的兴趣</h3>
+                <div id="interestList" class="space-y-2 text-gray-700">加载中...</div>
+                <button id="confirmInterestsBtn" class="mt-3 w-full py-2 border border-primary text-primary rounded-lg btn-hover">确认方向</button>
+                <button id="refreshBtn" class="mt-4 w-full py-2 bg-primary text-white rounded-lg btn-hover">刷新推荐</button>
+            </div>
+
+            <!-- 右侧推荐结果区 -->
+            <div class="w-full md:flex-1 bg-white rounded-xl p-6 card-shadow">
+                <h3 class="font-medium mb-4">推荐结果</h3>
+                <div id="aiResult" class="mb-6 bg-primary/5 border-l-4 border-primary p-4 rounded">
+                    <div class="flex items-start">
+                        <i class="fa fa-robot text-primary text-xl mr-3 mt-1"></i>
+                        <div>
+                            <h4 class="font-semibold text-primary mb-1">AI推荐助手</h4>
+                            <p id="aiMessage" class="text-gray-700">正在为你生成个性化推荐...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="aiMatches" class="space-y-6">
+                    <!-- AI推荐的竞赛将在这里显示 -->
+                    <div class="flex items-center justify-center py-12 text-gray-500">
+                        <i class="fa fa-circle-o-notch fa-spin text-2xl mr-3"></i>
+                        <span>正在加载推荐结果...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white mt-12 py-8 border-t border-gray-100">
+        <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
+            <p>© 2025 CompeteHub - Focused on University Student Competitions</p>
+        </div>
+    </footer>
+
+    <script>
+        // 获取当前登录用户
+        function getCurrentUser() {
+            const keys = ['competeHubUser', 'currentUser', 'userProfile'];
+            for (const k of keys) {
+                const v = localStorage.getItem(k);
+                if (v) {
+                    try { return JSON.parse(v); } catch(e) {}
+                }
+            }
+            return null;
+        }
+
+        // 获取用户兴趣
+        async function fetchUserInterests(userId, token) {
+            try {
+                const res = await fetch(`/users/${userId}/interests`);
+                if (!res.ok) return [];
+                
+                const ct = (res.headers.get('content-type') || '').toLowerCase();
+                let data;
+                
+                if (ct.includes('application/json')) {
+                    data = await res.json();
+                } else {
+                    data = await res.text();
+                }
+
+                let interestsArr = [];
+                if (Array.isArray(data)) {
+                    interestsArr = data;
+                } else if (typeof data === 'string') {
+                    interestsArr = data.trim().split(/\s+/).filter(Boolean);
+                } else if (data && data.interests) {
+                    if (Array.isArray(data.interests)) {
+                        interestsArr = data.interests;
+                    } else if (typeof data.interests === 'string') {
+                        interestsArr = data.interests.trim().split(/\s+/).filter(Boolean);
+                    }
+                }
+                
+                return interestsArr;
+            } catch (e) {
+                console.error('获取用户兴趣失败:', e);
+                return [];
+            }
+        }
+
+        // 渲染用户兴趣
+        function renderInterests(list) {
+            const container = document.getElementById('interestList');
+            container.innerHTML = '';
+            
+            if (!list || list.length === 0) {
+                container.innerHTML = '<div class="text-gray-500">未选择兴趣方向</div>';
+                return;
+            }
+            
+            list.forEach(i => {
+                const el = document.createElement('div');
+                el.className = 'px-3 py-1 bg-primary/10 text-primary rounded-full inline-block mb-2 mr-2';
+                el.textContent = i;
+                container.appendChild(el);
+            });
+        }
+
+        // 从Coze AI获取推荐
+        async function fetchAIRecommendations(interests, userId) {
+            try {
+                const res = await fetch('/api/ai/recommend', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        interests: Array.isArray(interests) ? interests.join(' ') : interests, 
+                        user: userId || 'guest' 
+                    })
+                });
+                
+                if (!res.ok) {
+                    throw new Error('AI推荐请求失败');
+                }
+                
+                return await res.json();
+            } catch (e) {
+                console.error('获取AI推荐失败:', e);
+                return null;
+            }
+        }
+
+        // 渲染AI推荐结果
+        function renderAIRecommendations(data) {
+            const container = document.getElementById('aiMatches');
+            const messageEl = document.getElementById('aiMessage');
+            
+            if (!data || data.code !== 0 || !data.data) {
+                messageEl.textContent = '获取推荐失败，请稍后重试';
+                container.innerHTML = '<div class="text-center py-8 text-gray-500">推荐获取失败，请点击刷新按钮重试</div>';
+                return;
+            }
+            
+            const aiData = data.data;
+            
+            // 更新AI消息
+            if (aiData.msg) {
+                messageEl.textContent = aiData.msg;
+            } else {
+                messageEl.textContent = `根据你的兴趣，我为你推荐了${aiData.output?.length || 0}个相关竞赛`;
+            }
+            
+            // 渲染推荐的竞赛列表
+            if (!aiData.output || aiData.output.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-gray-500">没有找到匹配的竞赛，尝试扩大兴趣范围或稍后刷新</div>';
+                return;
+            }
+            
+            // 创建textarea元素
+            const textarea = document.createElement('textarea');
+            textarea.className = 'w-full p-4 border border-gray-200 rounded-lg bg-gray-50 text-gray-700 font-mono text-sm resize-y';
+            textarea.rows = 15;
+            textarea.readOnly = true;
+            
+            // 格式化推荐结果为纯文本
+            let recommendationsText = '';
+            aiData.output.forEach((competition, index) => {
+                recommendationsText += `推荐 #${index + 1}\n`;
+                recommendationsText += `竞赛名称: ${competition['竞赛名称'] || '未命名竞赛'}\n`;
+                recommendationsText += `主办方: ${competition['主办方']?.replace(/\\n/g, '\n') || '未知'}\n`;
+                recommendationsText += `类别: ${competition['类别'] || '未知'}\n`;
+                recommendationsText += `竞赛时间: ${competition['竞赛时间'] || '未知'}\n`;
+                recommendationsText += `截止日期: ${competition['截止日期'] || '未知'}\n`;
+                recommendationsText += `推荐理由: ${competition['推荐理由'] || '与你的兴趣匹配'}\n`;
+                if (competition['官方链接']) {
+                    recommendationsText += `官方链接: ${competition['官方链接']}\n`;
+                }
+                recommendationsText += '='.repeat(50) + '\n';
+            });
+            
+            // 设置textarea内容
+            textarea.value = recommendationsText;
+            
+            // 清空容器并添加textarea
+            container.innerHTML = '';
+            container.appendChild(textarea);
+        }
+
+        // 加载推荐
+        async function loadRecommendations() {
+            const user = getCurrentUser();
+            const userId = user ? (user.user_id || user.id) : null;
+            const token = user ? (user.token || '') : '';
+            
+            // 获取用户兴趣
+            const interests = userId ? await fetchUserInterests(userId, token) : (user && user.interests ? user.interests : []);
+            renderInterests(interests);
+            
+            // 获取AI推荐
+            const aiRecommendations = await fetchAIRecommendations(interests, userId);
+            renderAIRecommendations(aiRecommendations);
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            loadRecommendations();
+            
+            // 绑定事件
+            document.getElementById('refreshBtn').addEventListener('click', () => {
+                const container = document.getElementById('aiMatches');
+                container.innerHTML = `
+                    <div class="flex items-center justify-center py-12 text-gray-500">
+                        <i class="fa fa-circle-o-notch fa-spin text-2xl mr-3"></i>
+                        <span>正在刷新推荐...</span>
+                    </div>
+                `;
+                loadRecommendations();
+            });
+            
+            document.getElementById('confirmInterestsBtn').addEventListener('click', () => {
+                window.location.href = '/select-interests?next=/recommendations';
+            });
+        });
+    </script>
+</body>
+</html>

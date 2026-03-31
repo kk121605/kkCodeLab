@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编辑个人资料 - CompeteHub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: all 0.2s ease;
+        }
+
+        :root {
+            --primary-color: #1890FF;
+            --primary-hover: #096DD9;
+            --light-primary: #E6F4FF;
+            --border-color: #E0E7FF;
+            --text-primary: #333333;
+            --text-secondary: #6C757D;
+            --text-tertiary: #94A3B8;
+            --card-bg: #FFFFFF;
+            --hover-shadow: 0 4px 12px rgba(24, 144, 255, 0.08);
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --top-bar-bg: #165DFF;
+            --cancel-color: #FF4D4F;
+            --cancel-hover: #F5222D;
+        }
+
+        body {
+            background-color: #F9FBFF;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .top-bar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: var(--top-bar-bg);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 24px;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: none;
+            font-size: 14px;
+            color: #FFFFFF;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+        }
+
+        .back-btn:hover {
+            color: #E6F4FF;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: 600;
+            color: #FFFFFF;
+            letter-spacing: 0.5px;
+        }
+
+        .user-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF;
+            font-weight: 600;
+            border: 1px solid transparent;
+        }
+
+        .main-container {
+            margin-top: 70px;
+            padding: 24px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .edit-form-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 32px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+
+        .form-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .skill-input-container {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        #new-skill {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+        }
+
+        #new-skill:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+        }
+
+        .add-skill-btn {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .add-skill-btn:hover {
+            background-color: var(--primary-hover);
+            box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+        }
+
+        .skill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .skill-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: var(--radius-lg);
+            font-weight: 500;
+            background-color: var(--light-primary);
+            color: var(--primary-color);
+        }
+
+        .remove-skill-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-secondary);
+            padding: 0;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .remove-skill-btn:hover {
+            color: var(--cancel-color);
+        }
+
+        #competition-exp {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        #competition-exp:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 32px;
+        }
+
+        .cancel-btn {
+            padding: 10px 24px;
+            background-color: white;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .cancel-btn:hover {
+            background-color: #f5f5f5;
+        }
+
+        .save-btn {
+            padding: 10px 24px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .save-btn:hover {
+            background-color: var(--primary-hover);
+            box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+        }
+
+        .save-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            color: var(--cancel-color);
+            font-size: 12px;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <button class="back-btn" onclick="window.location.href='/static/team.html'">
+            ← 返回团队页
+        </button>
+        <div class="logo">CompeteHub</div>
+        <div class="user-area">
+            <div class="user-avatar">J</div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <div class="edit-form-card">
+            <h1 class="form-title">编辑个人资料</h1>
+            
+            <form id="edit-profile-form">
+                <!-- Skills Section -->
+                <div class="form-group">
+                    <label class="form-label">技能</label>
+                    <div class="skill-input-container">
+                        <input type="text" id="new-skill" placeholder="添加技能（例如：Python、数据分析）">
+                        <button type="button" class="add-skill-btn" onclick="addSkill()">添加</button>
+                    </div>
+                    <div class="skill-tags" id="skill-tags-container"></div>
+                    <div class="error-message" id="skills-error"></div>
+                </div>
+
+                <!-- Competition Experience Section -->
+                <div class="form-group">
+                    <label class="form-label">过往竞赛经历</label>
+                    <textarea id="competition-exp" placeholder="填写你的竞赛经历，例如参加的比赛、所获奖项等。"></textarea>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn" onclick="window.location.href='/static/team.html'">取消</button>
+                    <button type="submit" class="save-btn">保存修改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Load existing user profile data from localStorage
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserData();
+        });
+
+        function loadUserData() {
+            // Get user data from localStorage
+            const userData = JSON.parse(localStorage.getItem('userProfile')) || {
+                skills: ['Python', 'Data Analysis', 'Business Planning'],
+                competitionExperience: '2024 National Mathematical Modeling Competition – 2nd Prize'
+            };
+
+            // Load skills
+            const skillsContainer = document.getElementById('skill-tags-container');
+            userData.skills.forEach(skill => {
+                addSkillToContainer(skill);
+            });
+
+            // Load competition experience
+            document.getElementById('competition-exp').value = userData.competitionExperience;
+
+            // Update save button state
+            updateSaveButton();
+        }
+
+        function addSkill() {
+            const newSkillInput = document.getElementById('new-skill');
+            const skill = newSkillInput.value.trim();
+
+            if (skill) {
+                // Check if skill already exists
+                const existingSkills = Array.from(document.querySelectorAll('.skill-tag')).map(tag => tag.textContent.replace(' ×', ''));
+                if (!existingSkills.includes(skill)) {
+                    addSkillToContainer(skill);
+                    newSkillInput.value = '';
+                    updateSaveButton();
+                }
+            }
+        }
+
+        function addSkillToContainer(skill) {
+            const skillsContainer = document.getElementById('skill-tags-container');
+            const skillTag = document.createElement('div');
+            skillTag.className = 'skill-tag';
+            skillTag.innerHTML = `
+                <span>${skill}</span>
+                <button type="button" class="remove-skill-btn" onclick="removeSkill(this)">×</button>
+            `;
+            skillsContainer.appendChild(skillTag);
+        }
+
+        function removeSkill(btn) {
+            const skillTag = btn.parentElement;
+            skillTag.remove();
+            updateSaveButton();
+        }
+
+        function updateSaveButton() {
+            const saveBtn = document.querySelector('.save-btn');
+            const skills = Array.from(document.querySelectorAll('.skill-tag'));
+            const skillsError = document.getElementById('skills-error');
+
+            if (skills.length < 1) {
+                saveBtn.disabled = true;
+                skillsError.textContent = 'At least one skill is required';
+            } else {
+                saveBtn.disabled = false;
+                skillsError.textContent = '';
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('edit-profile-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            // Get form data
+            const skills = Array.from(document.querySelectorAll('.skill-tag')).map(tag => tag.textContent.replace(' ×', ''));
+            const competitionExperience = document.getElementById('competition-exp').value.trim();
+
+            // Validate skills
+            if (skills.length < 1) {
+                document.getElementById('skills-error').textContent = 'At least one skill is required';
+                return;
+            }
+
+            // Save to localStorage
+            const userData = {
+                skills: skills,
+                competitionExperience: competitionExperience
+            };
+            localStorage.setItem('userProfile', JSON.stringify(userData));
+
+            // Redirect back to team page
+            window.location.href = '/static/team.html';
+        });
+
+        // Allow pressing Enter to add a skill
+        document.getElementById('new-skill').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addSkill();
+            }
+        });
+    </script>
+</body>
+</html>

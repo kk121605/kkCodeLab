@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compete Hub</title>
+    <!-- 引入外部资源 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 配置Tailwind自定义样式 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#FF7D00',
+                        neutral: '#F5F7FA',
+                        dark: '#333333',
+                        danger: '#FF4D4F'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'Microsoft YaHei', 'sans-serif'],
+                    },
+                },
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            }
+            .btn-hover {
+                @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5;
+            }
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+            .btn-danger-hover {
+                @apply transition-all duration-300 hover:bg-danger/10 hover:border-danger;
+            }
+        }
+    </style>
+</head>
+<body class="bg-neutral min-h-screen font-sans text-dark">
+<!-- 顶部导航栏：移除退出登录按钮 -->
+<header class="sticky top-0 z-50 bg-white shadow-sm transition-all duration-300">
+    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+        <!-- Logo区域 -->
+        <div class="flex items-center space-x-2">
+            <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                <i class="fa fa-graduation-cap text-white text-xl"></i>
+            </div>
+            <h1 class="text-xl font-bold text-primary">Compete Hub</h1>
+        </div>
+        <!-- 桌面端功能按钮：移除退出登录 -->
+        <div class="hidden md:flex space-x-4 items-center">
+            <button id="recBtn" class="px-5 py-2 rounded-lg border border-gray-200 bg-white text-dark btn-hover" onclick="window.location.href='/static/recommendations.html'">
+                <i class="fa fa-star mr-2"></i>AI智能推荐
+            </button>
+            <button id="expBtn" class="px-5 py-2 rounded-lg border border-gray-200 bg-white text-dark btn-hover" onclick="window.location.href='/experience'">
+                <i class="fa fa-book mr-2"></i>经验分享
+            </button>
+            <button id="teamBtn" class="px-5 py-2 rounded-lg border border-gray-200 bg-white text-dark btn-hover" onclick="window.location.href='/team'">
+                <i class="fa fa-users mr-2"></i>组队招募
+            </button>
+            <button id="userBtn" class="px-5 py-2 rounded-lg border border-gray-200 bg-white text-dark btn-hover" onclick="window.location.href='/profile'">
+                <i class="fa fa-user mr-2"></i>个人中心
+            </button>
+        </div>
+        <!-- 移动端菜单按钮 -->
+        <button id="mobileMenuBtn" class="md:hidden text-dark text-xl">
+            <i class="fa fa-bars"></i>
+        </button>
+    </div>
+    <!-- 移动端菜单：移除退出登录选项 -->
+    <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-gray-100">
+        <div class="container mx-auto px-4 py-2 flex flex-col space-y-2">
+            <button class="py-3 text-left hover:bg-neutral rounded-lg px-3 transition-colors" onclick="window.location.href='/experience'">
+                <i class="fa fa-book mr-2 text-primary"></i>经验分享
+            </button>
+            <button class="py-3 text-left hover:bg-neutral rounded-lg px-3 transition-colors" onclick="window.location.href='/team'">
+                <i class="fa fa-users mr-2 text-secondary"></i>组队招募
+            </button>
+            <button class="py-3 text-left hover:bg-neutral rounded-lg px-3 transition-colors" onclick="window.location.href='/profile'">
+                <i class="fa fa-user mr-2 text-primary"></i>个人中心
+            </button>
+        </div>
+    </div>
+</header>
+<main class="container mx-auto px-4 py-8">
+    <!-- 中部滚动栏：模拟推荐内容 -->
+    <section class="mb-12">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <h2 class="text-2xl font-bold">推荐内容</h2>
+            <div class="flex space-x-2">
+                <button id="prevCard" class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center btn-hover">
+                    <i class="fa fa-chevron-left text-dark"></i>
+                </button>
+                <button id="nextCard" class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center btn-hover">
+                    <i class="fa fa-chevron-right text-dark"></i>
+                </button>
+            </div>
+        </div>
+        <!-- 卡片滚动容器 -->
+        <div class="relative overflow-hidden">
+            <div id="cardContainer" class="flex space-x-6 transition-transform duration-500 ease-out">
+                <!-- 模拟推荐卡片1 -->
+                <div class="min-w-[280px] md:min-w-[350px] bg-white rounded-xl overflow-hidden card-shadow flex-shrink-0 transform hover:scale-[1.02] transition-all duration-300">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://picsum.photos/seed/exp1/600/400" alt="Experience Sharing" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                    </div>
+                    <div class="p-5">
+                        <span class="inline-block px-3 py-1 bg-primary/10 text-primary text-sm rounded-full mb-3">经验分享</span>
+                        <h3 class="text-lg font-bold mb-2 line-clamp-1">金奖队伍：3个月准备时间表</h3>
+                        <p class="text-gray-600 text-sm mb-4 line-clamp-2">从选题到答辩的完整时间线，包含技术准备、文档撰写、模拟答辩等关键节点，帮助你高效准备。</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <img src="https://picsum.photos/seed/author1/100/100" alt="Author" class="w-8 h-8 rounded-full mr-2 object-cover">
+                                <span class="text-sm text-gray-700">Student Zhang</span>
+                            </div>
+                            <span class="text-sm text-gray-500">2025-04-20</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- 模拟推荐卡片2 -->
+                <div class="min-w-[280px] md:min-w-[350px] bg-white rounded-xl overflow-hidden card-shadow flex-shrink-0 transform hover:scale-[1.02] transition-all duration-300 cursor-pointer" onclick="window.location.href='/static/team.html'">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://picsum.photos/seed/team1/600/400" alt="Team Recruitment" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                    </div>
+                    <div class="p-5">
+                        <span class="inline-block px-3 py-1 bg-secondary/10 text-secondary text-sm rounded-full mb-3">组队招募</span>
+                        <h3 class="text-lg font-bold mb-2 line-clamp-1">2025 挑战杯：寻求 UI/UX 设计师</h3>
+                        <p class="text-gray-600 text-sm mb-4 line-clamp-2">当前已有技术与市场成员，缺少UI/UX设计师。候选人需具备竞赛经验，能独立完成原型与视觉设计。</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <img src="https://picsum.photos/seed/author2/100/100" alt="Author" class="w-8 h-8 rounded-full mr-2 object-cover">
+                                <span class="text-sm text-gray-700">Li's Team</span>
+                            </div>
+                            <span class="text-sm text-gray-500">2025-04-25</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- 模拟推荐卡片3 -->
+                <div class="min-w-[280px] md:min-w-[350px] bg-white rounded-xl overflow-hidden card-shadow flex-shrink-0 transform hover:scale-[1.02] transition-all duration-300 cursor-pointer" onclick="window.location.href='/all-competitions'">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://picsum.photos/seed/comp1/600/400" alt="Competition Notice" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                    </div>
+                    <div class="p-5">
+                        <span class="inline-block px-3 py-1 bg-green-100 text-green-600 text-sm rounded-full mb-3">竞赛公告</span>
+                        <h3 class="text-lg font-bold mb-2 line-clamp-1">2025 全国大学生人工智能挑战赛开始报名</h3>
+                        <p class="text-gray-600 text-sm mb-4 line-clamp-2">今年新增多模态大模型赛道，最高奖金5万元。报名截止至6月30日，快组队报名参加！</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <img src="https://picsum.photos/seed/author3/100/100" alt="Author" class="w-8 h-8 rounded-full mr-2 object-cover">
+                                <span class="text-sm text-gray-700">Competition Organizing Committee</span>
+                            </div>
+                            <span class="text-sm text-gray-500">2025-04-18</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- 模拟推荐卡片4 -->
+                <div class="min-w-[280px] md:min-w-[350px] bg-white rounded-xl overflow-hidden card-shadow flex-shrink-0 transform hover:scale-[1.02] transition-all duration-300">
+                    <div class="h-48 overflow-hidden">
+                        <img src="https://picsum.photos/seed/exp2/600/400" alt="经验分享" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                    </div>
+                    <div class="p-5">
+                        <span class="inline-block px-3 py-1 bg-primary/10 text-primary text-sm rounded-full mb-3">经验分享</span>
+                        <h3 class="text-lg font-bold mb-2 line-clamp-1">创业竞赛商业计划常见误区指南</h3>
+                        <p class="text-gray-600 text-sm mb-4 line-clamp-2">评委最不喜欢的10个常见错误，包括市场分析不足、盈利模式不清晰、团队介绍无亮点等。</p>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center">
+                                <img src="https://picsum.photos/seed/author4/100/100" alt="作者" class="w-8 h-8 rounded-full mr-2 object-cover">
+                                <span class="text-sm text-gray-700">王导师</span>
+                            </div>
+                            <span class="text-sm text-gray-500">2025-04-15</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- 下方信息区：仅保留近期竞赛（占满宽度） -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-3">
+            <div class="bg-white rounded-xl p-6 card-shadow h-full">
+                <h2 class="text-xl font-bold mb-6 flex items-center">
+                    <i class="fa fa-trophy text-secondary mr-2"></i>近期竞赛
+                </h2>
+                <!-- 竞赛列表：模拟数据 -->
+                <div id="competitionList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                    <!-- 模拟竞赛卡片1 -->
+                    <div class="bg-neutral rounded-xl overflow-hidden card-shadow hover:shadow-lg transition-all duration-300">
+                        <div class="h-40 overflow-hidden">
+                            <img src="https://picsum.photos/seed/computer-design/400/300" alt="National College Student Computer Design Contest" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                        </div>
+                        <div class="p-5">
+                            <h3 class="font-bold text-lg mb-2 line-clamp-1">全国大学生计算机设计大赛</h3>
+                            <p class="text-sm text-gray-500 mb-1">
+                                <i class="fa fa-calendar-o mr-1 text-red-500"></i> 报名时间：2025-03-01 至 2025-05-31
+                            </p>
+                            <p class="text-sm text-gray-500 mb-3">
+                                <i class="fa fa-flag-o mr-1 text-red-500"></i> 级别：全国
+                            </p>
+                            <p class="text-sm text-gray-600 mb-4 line-clamp-2">大赛涵盖软件应用与开发、微课程与教学辅助、信息可视化设计等多个类别，旨在培养学生的创新精神和实践能力。</p>
+                        </div>
+                    </div>
+                    <!-- 模拟竞赛卡片2 -->
+                    <div class="bg-neutral rounded-xl overflow-hidden card-shadow hover:shadow-lg transition-all duration-300">
+                        <div class="h-40 overflow-hidden">
+                            <img src="https://picsum.photos/seed/comp3/400/300" alt="Competition Name" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                        </div>
+                        <div class="p-5">
+                            <h3 class="font-bold text-lg mb-2 line-clamp-1">“挑战杯”全国大学生创业计划竞赛</h3>
+                            <p class="text-sm text-gray-500 mb-1">
+                                <i class="fa fa-calendar-o mr-1 text-primary"></i> 报名时间：2025-02-15 至 2025-04-20
+                            </p>
+                            <p class="text-sm text-gray-500 mb-3">
+                                <i class="fa fa-flag-o mr-1 text-primary"></i> 级别：全国
+                            </p>
+                            <p class="text-sm text-gray-600 mb-4 line-clamp-2">激发大学生的创新精神和创业热情，培养创业意识和能力，促进学生创业项目的孵化和转化。</p>
+                        </div>
+                    </div>
+                    <!-- 模拟竞赛卡片3 -->
+                    <div class="bg-neutral rounded-xl overflow-hidden card-shadow hover:shadow-lg transition-all duration-300">
+                        <div class="h-40 overflow-hidden">
+                            <img src="https://picsum.photos/seed/comp4/400/300" alt="Competition Name" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                        </div>
+                        <div class="p-5">
+                            <h3 class="font-bold text-lg mb-2 line-clamp-1">全国大学生人工智能创新大赛</h3>
+                            <p class="text-sm text-gray-500 mb-1">
+                                <i class="fa fa-calendar-o mr-1 text-green-600"></i> 报名时间：2025-04-01 至 2025-06-15
+                            </p>
+                            <p class="text-sm text-gray-500 mb-3">
+                                <i class="fa fa-flag-o mr-1 text-green-600"></i> 级别：全国
+                            </p>
+                            <p class="text-sm text-gray-600 mb-4 line-clamp-2">专注于人工智能领域的技术创新和应用实现，涵盖机器学习、计算机视觉、自然语言处理等多个方向。</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- 查看全部竞赛：跳完整竞赛页 -->
+                <button class="w-full py-2.5 border border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-colors duration-300" onclick="window.location.href='/all-competitions'">
+                    <i class="fa fa-list mr-2"></i>查看全部竞赛
+                </button>
+            </div>
+        </div>
+    </section>
+</main>
+<!-- 页脚：统一版权信息 -->
+<footer class="bg-white mt-12 py-8 border-t border-gray-100">
+    <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
+        <p>© 2025 CompeteHub - 专注大学生竞赛</p>
+        
+    </div>
+</footer>
+<script>
+    // 移除登录态校验和退出登录相关函数
+    // 保留原有交互功能（卡片轮播、菜单切换等）
+
+    // 1. Mobile menu toggle
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    mobileMenuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+        // Toggle menu icon (bars ↔ times)
+        const icon = mobileMenuBtn.querySelector('i');
+        icon.classList.toggle('fa-bars');
+        icon.classList.toggle('fa-times');
+    });
+
+    // 2. Card carousel function
+    let currentPosition = 0;
+    function updateCarousel() {
+        const cardCount = cardContainer.children.length;
+        // Calculate card width based on screen width (including spacing)
+        const cardWidth = window.innerWidth < 768 ? 280 + 24 : 350 + 24;
+        const visibleCards = window.innerWidth < 768 ? 1 : 2;
+        const maxPosition = Math.max(0, cardCount - visibleCards);
+        // Limit carousel range (avoid overflow)
+        currentPosition = Math.min(Math.max(currentPosition, 0), maxPosition);
+        cardContainer.style.transform = `translateX(-${currentPosition * cardWidth}px)`;
+    }
+
+    // Carousel button events
+    document.getElementById('prevCard').addEventListener('click', () => {
+        currentPosition--;
+        updateCarousel();
+    });
+    document.getElementById('nextCard').addEventListener('click', () => {
+        currentPosition++;
+        updateCarousel();
+    });
+
+    // Recalculate carousel when window size changes
+    window.addEventListener('resize', () => {
+        currentPosition = 0;
+        updateCarousel();
+    });
+
+    // 3. Button click feedback effect
+    const buttons = document.querySelectorAll('button:not(#mobileMenuBtn)');
+    buttons.forEach(button => {
+        button.addEventListener('click', function() {
+            this.classList.add('scale-95');
+            setTimeout(() => {
+                this.classList.remove('scale-95');
+            }, 200);
+        });
+    });
+
+    // 4. Navigation bar scroll effect (reduce top and bottom padding when scrolling)
+    window.addEventListener('scroll', () => {
+        const header = document.querySelector('header');
+        if (window.scrollY > 10) {
+            header.classList.add('py-2');
+            header.classList.remove('py-4');
+        } else {
+            header.classList.add('py-4');
+            header.classList.remove('py-2');
+        }
+    });
+
+    // 5. Competition details navigation (preview prompt)
+    // Initialize carousel after page loads
+    window.addEventListener('DOMContentLoaded', () => {
+        updateCarousel();
+    });
+</script>
+
+    <!-- AI竞赛小助手 -->
+    <div class="fixed bottom-8 right-8 z-50">
+        <!-- 悬浮窗按钮 -->
+        <button id="aiAssistantBtn" class="w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center hover:bg-primary/90 transition-all duration-300 hover:scale-110 hover:shadow-xl">
+            <img src="images/ai-assistant-icon.svg" alt="AI助手" class="w-8 h-8 object-contain">
+        </button>
+
+        <!-- 对话界面 -->
+        <div id="aiAssistantChat" class="hidden bg-white rounded-2xl shadow-2xl overflow-hidden w-80 md:w-96 max-h-[80vh] flex flex-col transform transition-all duration-300 ease-out">
+            <!-- 聊天头部 -->
+            <div class="bg-primary text-white px-5 py-4 flex justify-between items-center">
+                <div class="flex items-center">
+                    <img src="images/ai-assistant-icon.svg" alt="AI助手" class="w-6 h-6 object-contain mr-2">
+                    <h3 class="font-bold">AI竞赛小助手</h3>
+                </div>
+                <button id="closeChatBtn" class="text-white/80 hover:text-white">
+                    <i class="fa fa-times text-lg"></i>
+                </button>
+            </div>
+
+            <!-- 聊天内容区域 -->
+            <div id="chatHistory" class="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
+                <!-- 欢迎消息 -->
+                <div class="flex items-start space-x-3">
+                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0 p-1">
+                        <img src="images/ai-assistant-icon.svg" alt="AI助手" class="w-full h-full object-contain">
+                    </div>
+                    <div class="bg-primary/10 rounded-lg p-3 max-w-[85%] animate-fadeIn">
+                        <p class="text-sm">您好！我是AI竞赛小助手，很高兴为您提供竞赛相关信息。请问有什么可以帮助您的？</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 输入区域 -->
+            <div class="border-t border-gray-100 p-4">
+                <div class="flex space-x-3">
+                    <input type="text" id="userInput" placeholder="请输入您的问题..." class="flex-1 px-4 py-3 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all">
+                    <button id="sendBtn" class="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center hover:bg-primary/90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fa fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // AI竞赛小助手功能实现
+        document.addEventListener('DOMContentLoaded', () => {
+            const aiAssistantBtn = document.getElementById('aiAssistantBtn');
+            const aiAssistantChat = document.getElementById('aiAssistantChat');
+            const closeChatBtn = document.getElementById('closeChatBtn');
+            const chatHistory = document.getElementById('chatHistory');
+            const userInput = document.getElementById('userInput');
+            const sendBtn = document.getElementById('sendBtn');
+
+            // 显示/隐藏聊天窗口
+            function toggleChatWindow() {
+                aiAssistantChat.classList.toggle('hidden');
+                // 添加动画效果
+                if (!aiAssistantChat.classList.contains('hidden')) {
+                    aiAssistantChat.style.transform = 'translateY(0) scale(1)';
+                    aiAssistantChat.style.opacity = '1';
+                    userInput.focus();
+                } else {
+                    aiAssistantChat.style.transform = 'translateY(20px) scale(0.95)';
+                    aiAssistantChat.style.opacity = '0';
+                }
+            }
+
+            aiAssistantBtn.addEventListener('click', toggleChatWindow);
+            closeChatBtn.addEventListener('click', toggleChatWindow);
+
+            // 发送消息
+            function sendMessage() {
+                const message = userInput.value.trim();
+                if (!message) return;
+
+                // 添加用户消息到聊天历史
+                addMessageToHistory(message, 'user');
+                userInput.value = '';
+
+                // 显示加载状态
+                showLoadingState();
+
+                // 调用API获取回复
+                getAIResponse(message);
+            }
+
+            // Markdown解析函数
+            function markdownToHtml(markdown) {
+                let html = markdown;
+                
+                // 1. 标题
+                html = html.replace(/^# (.*$)/gm, '<h1 class="text-lg font-bold mb-2">$1</h1>');
+                html = html.replace(/^## (.*$)/gm, '<h2 class="text-md font-bold mb-2">$1</h2>');
+                html = html.replace(/^### (.*$)/gm, '<h3 class="text-sm font-bold mb-2">$1</h3>');
+                
+                // 2. 粗体和斜体
+                html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+                html = html.replace(/__(.*?)__/g, '<strong>$1</strong>');
+                html = html.replace(/_(.*?)_/g, '<em>$1</em>');
+                
+                // 3. 代码
+                html = html.replace(/`(.*?)`/g, '<code class="bg-gray-200 px-1 py-0.5 rounded text-xs">$1</code>');
+                
+                // 4. 代码块
+                html = html.replace(/```([\s\S]*?)```/g, '<pre class="bg-gray-200 p-3 rounded-lg mb-2 overflow-x-auto"><code>$1</code></pre>');
+                
+                // 5. 链接
+                html = html.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary underline">$1</a>');
+                
+                // 6. 列表
+                html = html.replace(/^\s*\*\s+([^\n]+)$/gm, '<ul class="list-disc pl-5 mb-2"><li>$1</li></ul>');
+                html = html.replace(/^\s*\d+\.\s+([^\n]+)$/gm, '<ol class="list-decimal pl-5 mb-2"><li>$1</li></ol>');
+                
+                // 合并相邻的列表项
+                html = html.replace(/<\/li><\/ul>\s*<ul class="list-disc pl-5 mb-2"><li>/g, '</li><li>');
+                html = html.replace(/<\/li><\/ol>\s*<ol class="list-decimal pl-5 mb-2"><li>/g, '</li><li>');
+                
+                // 7. 引用
+                html = html.replace(/^>\s*([^\n]+)$/gm, '<blockquote class="border-l-4 border-primary/50 pl-3 italic mb-2">$1</blockquote>');
+                
+                // 8. 分隔线
+                html = html.replace(/^---$/gm, '<hr class="border-gray-200 my-3">');
+                
+                // 9. 表格
+                html = html.replace(/\|(.+)\|\n\|([-:]+\|[-:\|]+)\|\n((?:\|.+\|\n)+)/g, (match, headers, separator, rows) => {
+                    const headerCells = headers.split('|').map(cell => cell.trim()).filter(cell => cell);
+                    const headerRow = headerCells.map(cell => `<th class="border px-3 py-1 bg-gray-50 font-medium">${cell}</th>`).join('');
+                    
+                    const rowLines = rows.split('\n').filter(line => line.trim());
+                    const bodyRows = rowLines.map(line => {
+                        const cells = line.split('|').map(cell => cell.trim()).filter(cell => cell);
+                        return `<tr>${cells.map(cell => `<td class="border px-3 py-1">${cell}</td>`).join('')}</tr>`;
+                    }).join('');
+                    
+                    return `<table class="border-collapse w-full mb-2">
+                            <thead><tr>${headerRow}</tr></thead>
+                            <tbody>${bodyRows}</tbody>
+                          </table>`;
+                });
+                
+                // 10. 段落
+                html = html.replace(/(^[^<].*$)/gm, '<p class="mb-2">$1</p>');
+                
+                return html;
+            }
+
+            // 添加消息到聊天历史
+            function addMessageToHistory(message, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `${sender === 'user' ? 'flex justify-end items-start' : 'flex items-start'} space-x-3 mb-4 animate-fadeIn`;
+                messageDiv.style.animationDelay = '0.1s';
+
+                if (sender === 'user') {
+                    messageDiv.innerHTML = `
+                        <div class="bg-primary text-white rounded-lg p-3 max-w-[85%]">
+                            <p class="text-sm">${message}</p>
+                        </div>
+                        <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fa fa-user text-gray-600 text-xs"></i>
+                        </div>
+                    `;
+                } else {
+                    // 对AI消息进行Markdown解析
+                    const htmlContent = markdownToHtml(message);
+                    messageDiv.innerHTML = `
+                        <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0 p-1">
+                            <img src="images/ai-assistant-icon.svg" alt="AI助手" class="w-full h-full object-contain">
+                        </div>
+                        <div class="bg-gray-100 rounded-lg p-3 max-w-[85%] markdown-content">
+                            ${htmlContent}
+                        </div>
+                    `;
+                }
+
+                chatHistory.appendChild(messageDiv);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+
+                // 保存历史记录
+                saveChatHistory();
+            }
+
+            // 显示加载状态
+            function showLoadingState() {
+                const loadingDiv = document.createElement('div');
+                loadingDiv.id = 'loadingState';
+                loadingDiv.className = 'flex items-start space-x-3 mb-4';
+                loadingDiv.innerHTML = `
+                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fa fa-robot text-white text-xs"></i>
+                    </div>
+                    <div class="bg-gray-100 rounded-lg p-3">
+                        <div class="flex space-x-2">
+                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 200ms;"></div>
+                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 400ms;"></div>
+                        </div>
+                    </div>
+                `;
+                chatHistory.appendChild(loadingDiv);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            }
+
+            // 隐藏加载状态
+            function hideLoadingState() {
+                const loadingDiv = document.getElementById('loadingState');
+                if (loadingDiv) {
+                    loadingDiv.remove();
+                }
+            }
+
+            // 调用千问plus API
+            function getAIResponse(userMessage) {
+                const apiKey = 'sk-4c6293f17e26489f9bb32a5b652b7217';
+                const apiUrl = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
+
+                fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'qwen-plus',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: '你是一个AI竞赛小助手，专注于为大学生提供各类竞赛相关信息。请以友好、专业的方式回答用户的问题，帮助他们了解竞赛信息、准备竞赛等。'
+                            },
+                            {
+                                role: 'user',
+                                content: userMessage
+                            }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 1024
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoadingState();
+                    if (data.choices && data.choices[0] && data.choices[0].message) {
+                        const aiResponse = data.choices[0].message.content;
+                        addMessageToHistory(aiResponse, 'ai');
+                    } else {
+                        throw new Error('API返回格式不正确');
+                    }
+                })
+                .catch(error => {
+                    hideLoadingState();
+                    console.error('AI助手错误:', error);
+                    addMessageToHistory('抱歉，我暂时无法回答您的问题。请稍后再试或检查网络连接。', 'ai');
+                });
+            }
+
+            // 保存聊天历史到localStorage
+            function saveChatHistory() {
+                const messages = [];
+                const messageDivs = chatHistory.querySelectorAll('div:not(#loadingState)');
+                
+                messageDivs.forEach(div => {
+                    if (div.classList.contains('animate-fadeIn')) {
+                        const sender = div.classList.contains('justify-end') ? 'user' : 'ai';
+                        const content = div.querySelector('p').textContent;
+                        messages.push({ sender, content });
+                    }
+                });
+                
+                localStorage.setItem('aiAssistantChatHistory', JSON.stringify(messages));
+            }
+
+            // 加载聊天历史
+            function loadChatHistory() {
+                const savedHistory = localStorage.getItem('aiAssistantChatHistory');
+                if (savedHistory) {
+                    const messages = JSON.parse(savedHistory);
+                    // 清空当前历史（保留欢迎消息）
+                    const welcomeMessage = chatHistory.querySelector('.animate-fadeIn');
+                    chatHistory.innerHTML = '';
+                    if (welcomeMessage) {
+                        chatHistory.appendChild(welcomeMessage);
+                    }
+                    
+                    messages.forEach(message => {
+                        if (message.content !== '您好！我是AI竞赛小助手，很高兴为您提供竞赛相关信息。请问有什么可以帮助您的？') {
+                            addMessageToHistory(message.content, message.sender);
+                        }
+                    });
+                }
+            }
+
+            // 事件监听
+            sendBtn.addEventListener('click', sendMessage);
+            userInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+
+            // 点击外部关闭聊天窗口
+            document.addEventListener('click', (e) => {
+                if (!aiAssistantChat.contains(e.target) && !aiAssistantBtn.contains(e.target)) {
+                    aiAssistantChat.classList.add('hidden');
+                }
+            });
+
+            // 添加动画样式
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fadeIn {
+                    from {
+                        opacity: 0;
+                        transform: translateY(10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
+                .animate-fadeIn {
+                    animation: fadeIn 0.3s ease-out forwards;
+                }
+            `;
+            document.head.appendChild(style);
+
+            // 初始化加载聊天历史
+            loadChatHistory();
+        });
+    </script>
+</body>
+</html>

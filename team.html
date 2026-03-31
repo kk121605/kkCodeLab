@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CompeteHub - 组队招募</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: all 0.2s ease; /* 统一过渡效果 */
+        }
+        /* 关键修改：设置html和body为100%高度，启用flex布局 */
+        html, body {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        body {
+            background-color: #F9FBFF; /* 统一浅蓝背景色，更协调 */
+            color: #333333;
+            line-height: 1.6;
+        }
+        /* 统一按钮样式变量 */
+        :root {
+            --primary-color: #1890FF;
+            --primary-hover: #096DD9;
+            --light-primary: #E6F4FF;
+            --border-color: #E0E7FF; /* 统一边框色 */
+            --text-primary: #333333;
+            --text-secondary: #6C757D;
+            --text-tertiary: #94A3B8;
+            --card-bg: #FFFFFF;
+            --hover-shadow: 0 4px 12px rgba(24, 144, 255, 0.08);
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --top-bar-bg: #165DFF; /* 新增顶层导航栏背景色变量 */
+            --cancel-color: #FF4D4F; /* 取消按钮颜色 */
+            --cancel-hover: #F5222D; /* 取消按钮hover颜色 */
+        }
+
+        /* Top Bar - 背景色改为#165DFF，同步调整文字和元素颜色 */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: var(--top-bar-bg); /* 应用深蓝色背景 */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* 边框改为半透明白色，更协调 */
+            padding: 12px 24px;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* 阴影加深，提升层次感 */
+        }
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: none;
+            font-size: 14px;
+            color: #FFFFFF; /* 文字改为白色 */
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+        }
+        .back-btn:hover {
+            color: #E6F4FF; /* hover时文字改为浅蓝 */
+            background-color: rgba(255, 255, 255, 0.1); /* hover背景改为半透明白色 */
+        }
+        .logo {
+            font-size: 18px;
+            font-weight: 600;
+            color: #FFFFFF; /* Logo文字改为白色 */
+            letter-spacing: 0.5px;
+        }
+        .user-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2); /* 头像背景改为半透明白色 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF; /* 头像文字改为白色 */
+            font-weight: 600;
+            border: 1px solid transparent;
+        }
+        .user-avatar:hover {
+            border-color: #FFFFFF; /* hover边框改为白色 */
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+        }
+        .dropdown {
+            position: relative;
+        }
+        .dropdown-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            color: #FFFFFF; /* 下拉按钮文字改为白色 */
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+        }
+        .dropdown-btn:hover {
+            color: #E6F4FF; /* hover时文字改为浅蓝 */
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            min-width: 140px;
+            padding: 8px 0;
+            box-shadow: var(--hover-shadow);
+            z-index: 101;
+        }
+        .dropdown-content a {
+            display: block;
+            padding: 10px 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+        .dropdown-content a:hover {
+            background-color: var(--light-primary);
+            color: var(--primary-color);
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        /* Main Content Area - 关键修改：设置flex:1让内容区自动填充剩余空间 */
+        .main-container {
+            margin-top: 70px;
+            display: flex;
+            padding: 24px;
+            gap: 24px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto; /* 居中容器 */
+            flex: 1; /* 自动填充剩余高度，将页脚推到底部 */
+        }
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                padding: 16px;
+                gap: 16px;
+            }
+        }
+
+        /* Profile Card (Left) */
+        .profile-card {
+            width: 300px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        @media (max-width: 768px) {
+            .profile-card {
+                width: 100%;
+            }
+        }
+        .profile-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .profile-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background-color: var(--light-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 20px;
+            margin: 0 auto 12px;
+            border: 1px solid transparent;
+        }
+        .profile-avatar:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+        }
+        .profile-username {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .profile-school {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .profile-info {
+            margin-bottom: 16px;
+        }
+        .info-label {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .skill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        /* 统一风格的技能标签 - 保持色彩协调 */
+        .skill-tag {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: var(--radius-lg);
+            font-weight: 500;
+        }
+        .skill-tag-python {
+            background-color: #E6F4FF;
+            color: var(--primary-color);
+        }
+        .skill-tag-data {
+            background-color: #E6FFF4;
+            color: #00B42A;
+        }
+        .skill-tag-business {
+            background-color: #FFF4E6;
+            color: #FF7D00;
+        }
+        .profile-gpa {
+            font-size: 14px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        .profile-exp {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .edit-btn {
+            width: 100%;
+            padding: 10px 0;
+            border: 1px solid var(--primary-color);
+            background: var(--card-bg);
+            color: var(--primary-color);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+        .edit-btn:hover {
+            background: var(--primary-color);
+            color: var(--card-bg);
+            box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+        }
+
+        /* Recruitment Feed (Middle) */
+        .recruitment-feed {
+            flex: 1;
+        }
+        .feed-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .feed-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .feed-title::before {
+            content: "👥";
+            font-size: 20px;
+        }
+        .feed-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .create-post-btn {
+            padding: 9px 18px;
+            background: var(--primary-color);
+            color: var(--card-bg);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .create-post-btn:hover {
+            background: var(--primary-hover);
+            box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+        }
+
+        .post-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .post-card:hover {
+            box-shadow: var(--hover-shadow);
+            transform: translateY(-2px);
+        }
+        .post-competition {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        .post-need {
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        .post-req {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+        .post-recruiter {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-bottom: 16px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border-color);
+        }
+        .post-actions {
+            text-align: right;
+        }
+
+        .apply-btn {
+            padding: 6px 12px;
+            background: var(--primary-color);
+            color: var(--card-bg);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .apply-btn:hover {
+            background: var(--primary-hover);
+            box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+        }
+        .apply-btn:disabled {
+            background: var(--text-tertiary);
+            cursor: default;
+            box-shadow: none;
+            transform: none;
+        }
+        /* 取消申请按钮样式 */
+        .cancel-btn {
+            padding: 6px 12px;
+            background: var(--cancel-color);
+            color: var(--card-bg);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .cancel-btn:hover {
+            background: var(--cancel-hover);
+            box-shadow: 0 2px 8px rgba(255, 77, 79, 0.2);
+        }
+
+        /* Smart Recommendations (Right) */
+        .recommendation-card {
+            width: 300px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        @media (max-width: 768px) {
+            .recommendation-card {
+                width: 100%;
+            }
+        }
+        .recommend-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .recommend-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .recommend-title::before {
+            content: "🤝";
+            font-size: 18px;
+        }
+
+        .recommend-item {
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .recommend-item:last-child {
+            margin-bottom: 12px;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        .teammate-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .teammate-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background-color: var(--light-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 14px;
+            border: 1px solid transparent;
+        }
+        .teammate-avatar:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+        }
+        .teammate-name {
+            font-size: 14px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        .teammate-major {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+        .match-reason {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        /* 邀请按钮样式（与Apply Now一致） */
+        .invite-btn {
+            width: 100%;
+            padding: 8px 0;
+            background: var(--primary-color);
+            color: var(--card-bg);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .invite-btn:hover {
+            background: var(--primary-hover);
+            box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15);
+        }
+        .recommend-note {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            margin-top: 12px;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        /* Footer - 关键修改：固定底部样式 */
+        .footer {
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            /* 确保页脚不被内容覆盖，且固定在底部 */
+            width: 100%;
+            margin-top: auto; /* 自动margin-top将页脚推到底部 */
+        }
+        @media (max-width: 768px) {
+            .footer {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+        }
+        .copyright {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+        .footer-links {
+            display: flex;
+            gap: 20px;
+        }
+        .footer-link {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            text-decoration: none;
+        }
+        .footer-link:hover {
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<!-- Top Bar -->
+<div class="top-bar">
+    <button class="back-btn" onclick="window.location.href='/index'">← 返回首页</button>
+    <div class="logo">CompeteHub</div>
+    <div class="user-area">
+        <div class="user-avatar">U</div>
+        <div class="dropdown">
+            <button class="dropdown-btn">菜单</button>
+            <div class="dropdown-content">
+                <!-- 修改：将 Edit Profile 链接到你的 profile 界面 -->
+                <a href="/profile">编辑资料</a>
+                <a href="#">我的团队</a>
+                <a href="#">退出登录</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Area -->
+<div class="main-container">
+    <!-- Profile Card -->
+    <div class="profile-card">
+        <div class="profile-header">
+            <div class="profile-avatar">张</div>
+            <div class="profile-username">张三</div>
+            <div class="profile-school">计算机科学 | 北京大学</div>
+        </div>
+            <div class="profile-info">
+            <div class="info-label">技能</div>
+            <div class="skill-tags">
+                <span class="skill-tag skill-tag-python">Python</span>
+                <span class="skill-tag skill-tag-data">数据分析</span>
+                <span class="skill-tag skill-tag-business">商业策划</span>
+            </div>
+        </div>
+            <div class="profile-info">
+            <div class="info-label">绩点（GPA）</div>
+            <div class="profile-gpa">3.8/4.0</div>
+        </div>
+            <div class="profile-info">
+            <div class="info-label">以往竞赛经验</div>
+            <div class="profile-exp">2024全国数学建模竞赛 - 二等奖</div>
+        </div>
+            <a href="/static/edit_profile.html" style="text-decoration: none;">
+            <button class="edit-btn">编辑资料</button>
+        </a>
+    </div>
+
+    <!-- Recruitment Feed -->
+    <div class="recruitment-feed">
+        <div class="feed-header">
+            <div class="feed-title">组队招募</div>
+            <div class="feed-actions">
+                <button class="create-post-btn" onclick="window.location.href='/static/post_recruitment.html'">✏️ 发布招募信息</button>
+
+            </div>
+        </div>
+        <div class="post-card">
+            <div class="post-competition">2025 挑战杯</div>
+            <div class="post-need">需求：1名队员（UI/UX设计师）</div>
+            <div class="post-req">要求：当前已有技术与市场成员，缺少UI/UX设计师。候选人需具备竞赛经验，能独立完成原型与视觉设计。</div>
+            <div class="post-recruiter">发布者：Li's Team | 2025-04-25</div>
+            <div class="post-actions">
+                <button class="apply-btn" data-status="unapplied">申请加入</button>
+            </div>
+        </div>
+        <div class="post-card">
+            <div class="post-competition">2025 全国大学生人工智能创新大赛</div>
+            <div class="post-need">需求：2名队员（数据分析 + 前端开发）</div>
+            <div class="post-req">要求：熟悉 TensorFlow / Vue 3，优先有1年以上竞赛经验</div>
+            <div class="post-recruiter">发布者：李明（计算机，北京大学） | 3小时前</div>
+            <div class="post-actions">
+                <button class="apply-btn" data-status="unapplied">申请加入</button>
+            </div>
+        </div>
+        <div class="post-card">
+            <div class="post-competition">2025 国际商业案例竞赛</div>
+            <div class="post-need">需求：1名队员（市场策略专家）</div>
+            <div class="post-req">要求：具备市场调研经验，英语流利</div>
+            <div class="post-recruiter">发布者：陈莎拉（工商管理，清华大学） | 6小时前</div>
+            <div class="post-actions">
+                <button class="apply-btn" data-status="unapplied">申请加入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Smart Recommendations -->
+    <div class="recommendation-card">
+        <div class="recommend-header">
+            <div class="recommend-title">智能推荐</div>
+            
+        </div>
+        <div class="recommend-item">
+            <div class="teammate-info">
+                <div class="teammate-avatar">王</div>
+                <div>
+                    <div class="teammate-name">王小明</div>
+                    <div class="teammate-major">UI/UX设计</div>
+                </div>
+            </div>
+            <div class="match-reason">互补技能：你擅长 Python，对方擅长 UI/UX</div>
+            <!-- 修改：Connect → Invite，添加data-status属性，使用invite-btn类 -->
+            <button class="invite-btn" data-status="unapplied">邀请</button>
+        </div>
+        <div class="recommend-item">
+            <div class="teammate-info">
+                <div class="teammate-avatar">张</div>
+                <div>
+                    <div class="teammate-name">张丽</div>
+                    <div class="teammate-major">前端开发</div>
+                </div>
+            </div>
+            <div class="match-reason">共同兴趣：2025 全国大学生人工智能创新大赛</div>
+            <!-- 修改：Connect → Invite，添加data-status属性，使用invite-btn类 -->
+            <button class="invite-btn" data-status="unapplied">邀请</button>
+        </div>
+        <div class="recommend-note">基于你的技能和竞赛偏好</div>
+    </div>
+</div>
+
+<!-- Footer -->
+
+
+<script>
+    // 分别处理Apply Now按钮和Invite按钮，保持各自的文本切换
+    // 处理申请加入按钮（Apply Now）
+    const applyBtns = document.querySelectorAll('.apply-btn');
+    applyBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const currentStatus = btn.dataset.status;
+
+            // 未申请状态 → 申请状态
+            if (currentStatus === 'unapplied') {
+                btn.textContent = '取消申请';
+                btn.className = 'cancel-btn'; // 切换为取消按钮样式
+                btn.dataset.status = 'applied';
+
+                // 添加申请成功的过渡效果
+                btn.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    btn.style.transform = 'scale(1)';
+                }, 200);
+            }
+            // 已申请状态 → 取消申请状态
+            else if (currentStatus === 'applied') {
+                btn.textContent = '申请加入'; // 恢复为申请加入
+                btn.className = 'apply-btn'; // 恢复原始样式
+                btn.dataset.status = 'unapplied';
+
+                // 添加取消申请的过渡效果
+                btn.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    btn.style.transform = 'scale(1)';
+                }, 200);
+            }
+        });
+    });
+
+    // 处理邀请按钮（Invite）
+    const inviteBtns = document.querySelectorAll('.invite-btn');
+    inviteBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const currentStatus = btn.dataset.status;
+
+            // 未邀请状态 → 已邀请状态
+            if (currentStatus === 'unapplied') {
+                btn.textContent = '取消邀请';
+                btn.className = 'cancel-btn'; // 切换为取消按钮样式
+                btn.dataset.status = 'applied';
+
+                // 添加邀请成功的过渡效果
+                btn.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    btn.style.transform = 'scale(1)';
+                }, 200);
+            }
+            // 已邀请状态 → 取消邀请状态
+            else if (currentStatus === 'applied') {
+                btn.textContent = '邀请'; // 恢复为邀请
+                btn.className = 'invite-btn'; // 恢复原始样式
+                btn.dataset.status = 'unapplied';
+
+                // 添加取消邀请的过渡效果
+                btn.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    btn.style.transform = 'scale(1)';
+                }, 200);
+            }
+        });
+    });
+
+    // 从本地存储加载用户资料
+    function loadUserProfile() {
+        const userData = JSON.parse(localStorage.getItem('userProfile')) || {
+            name: '张三',
+            school: '计算机科学 | 北京大学',
+            gpa: '3.8/4.0',
+            skills: ['Python', '数据分析', '商业策划'],
+            competitionExperience: '2024全国数学建模竞赛 - 二等奖'
+        };
+        
+        // 更新个人资料信息
+        document.querySelector('.profile-username').textContent = userData.name;
+        document.querySelector('.profile-school').textContent = userData.school;
+        
+        // 更新技能
+        const skillsContainer = document.querySelector('.skill-tags');
+        skillsContainer.innerHTML = '';
+        
+        userData.skills.forEach((skill, index) => {
+            const skillTag = document.createElement('span');
+            let tagClass = '';
+            
+            // 根据技能类型分配颜色（保持现有配色方案）
+            if (skill.toLowerCase().includes('python')) {
+                tagClass = 'skill-tag-python';
+            } else if (skill.toLowerCase().includes('data') || skill.toLowerCase().includes('analysis')) {
+                tagClass = 'skill-tag-data';
+            } else if (skill.toLowerCase().includes('business') || skill.toLowerCase().includes('marketing')) {
+                tagClass = 'skill-tag-business';
+            } else {
+                // 其他技能的默认标签样式
+                tagClass = 'skill-tag-python'; // Use primary color for default
+            }
+            
+            skillTag.className = `skill-tag ${tagClass}`;
+            skillTag.textContent = skill;
+            skillsContainer.appendChild(skillTag);
+        });
+        
+        // 更新GPA和竞赛经验
+        document.querySelector('.profile-gpa').textContent = userData.gpa;
+        document.querySelector('.profile-exp').textContent = userData.competitionExperience;
+    }
+    
+    // 从本地存储加载招募帖子
+    function loadRecruitmentPosts() {
+        // 检查本地存储中是否有帖子
+        const recruitmentPosts = JSON.parse(localStorage.getItem('recruitmentPosts')) || [];
+        
+        // 如果没有帖子，添加一些示例帖子到本地存储
+        if (recruitmentPosts.length === 0) {
+            const samplePosts = [
+                {
+                    competition: '2025 挑战杯',
+                    positions: '1',
+                    description: 'UI/UX设计师',
+                    requirements: '当前已有技术与市场成员，缺少UI/UX设计师。候选人需具备竞赛经验，能独立完成原型与视觉设计。',
+                    skills: ['UI设计', 'UX设计', '原型设计'],
+                    contact: 'lesteam@example.com',
+                    deadline: '2025-05-10',
+                    recruiter: 'Li\'s Team',
+                    timeAgo: '2025-04-25'
+                },
+                {
+                    competition: '2025 全国大学生人工智能创新大赛',
+                    positions: '2',
+                    description: '数据分析 + 前端开发',
+                    requirements: '熟悉 TensorFlow / Vue 3，优先有1年以上竞赛经验',
+                    skills: ['TensorFlow', 'Vue 3', 'Python'],
+                    contact: 'liming@example.com',
+                    deadline: '2025-03-15',
+                    recruiter: '李明（计算机，北京大学）',
+                    timeAgo: '3小时前'
+                },
+                {
+                    competition: '2025 国际商业案例竞赛',
+                    positions: '1',
+                    description: '市场策略专家',
+                    requirements: '具备市场调研经验，英语流利',
+                    skills: ['市场营销', '英语', '调研'],
+                    contact: 'sarahchen@example.com',
+                    deadline: '2025-04-10',
+                    recruiter: '陈莎拉（工商管理，清华大学）',
+                    timeAgo: '6小时前'
+                }
+            ];
+            
+            // 保存示例帖子到本地存储
+            localStorage.setItem('recruitmentPosts', JSON.stringify(samplePosts));
+        }
+    }
+    
+    // 创建帖子卡片元素
+    function createPostCard(post, container) {
+        const postCard = document.createElement('div');
+        postCard.className = 'post-card';
+        
+        let postHTML = `
+            <div class="post-competition">${post.competition}</div>
+            <div class="post-need">需求：${post.positions} 名队员（${post.description}）</div>
+            <div class="post-req">要求：${post.requirements}</div>
+            <div class="post-recruiter">发布者：${post.recruiter} | ${post.timeAgo}</div>
+            <div class="post-actions">
+                <button class="apply-btn" data-status="unapplied">申请加入</button>
+            </div>
+        `;
+        
+        postCard.innerHTML = postHTML;
+        container.appendChild(postCard);
+        
+        // 为申请按钮添加点击事件
+        const applyBtn = postCard.querySelector('.apply-btn');
+        applyBtn.addEventListener('click', () => {
+            const currentStatus = applyBtn.dataset.status;
+            
+            if (currentStatus === 'unapplied') {
+                applyBtn.textContent = '取消申请';
+                applyBtn.className = 'cancel-btn';
+                applyBtn.dataset.status = 'applied';
+                
+                applyBtn.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    applyBtn.style.transform = 'scale(1)';
+                }, 200);
+            } else if (currentStatus === 'applied') {
+                applyBtn.textContent = '申请加入';
+                applyBtn.className = 'apply-btn';
+                applyBtn.dataset.status = 'unapplied';
+                
+                applyBtn.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    applyBtn.style.transform = 'scale(1)';
+                }, 200);
+            }
+        });
+        
+        return postCard;
+    }
+    
+    // 为卡片添加微妙的进入动画
+    document.addEventListener('DOMContentLoaded', () => {
+        // 首先加载用户资料
+        loadUserProfile();
+        // 加载招募帖子
+        loadRecruitmentPosts();
+        
+        // 然后应用动画
+        const cards = document.querySelectorAll('.profile-card, .post-card, .recommendation-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(10px)';
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100 * index);
+        });
+    });
+</script>
+</body>
+</html>
